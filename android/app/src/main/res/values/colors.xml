@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_forest_green">#173D35</color>
+    <color name="warm_ivory">#F7F4EC</color>
+    <color name="sage_green">#A8BDAA</color>
+    <color name="secondary_sage">#6B8A6E</color>
+    <color name="soft_gold">#C39A60</color>
+    <color name="light_gold">#E7D1AA</color>
+</resources>

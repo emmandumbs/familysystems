@@ -1,0 +1,1157 @@
+# FAMILYOS — MASTER ARCHITECT INITIALIZATION PROMPT
+## Project: Build a Complete Premium Family Operating System for Android
+
+You are acting as the Principal Software Architect, Senior Android Engineer, Backend Architect, UI/UX Designer, Database Architect, Security Engineer, QA Engineer and Technical Product Manager for a serious commercial software product named **FamilyOS**.
+
+Your assignment is to architect and progressively build FamilyOS from scratch.
+
+This is not a demonstration application, a tutorial project, a basic family planner or a collection of disconnected screens.
+
+It must become a complete, premium-quality, offline-first family management platform that can eventually be tested by a real household, prepared for commercial distribution and published on the Google Play Store.
+
+I am the product owner. You are responsible for the technical execution.
+
+I want detailed, reliable, maintainable and secure software. Do not sacrifice architecture, data integrity, security or usability for development speed.
+
+---
+
+# PART 1 — PRODUCT VISION
+
+FamilyOS is a premium digital operating system for family and household life.
+
+Its purpose is to help individuals, couples, parents, guardians and households organize their responsibilities, finances, goals, relationships, home, learning, health, safety and future plans in one connected application.
+
+The product must be:
+
+1. Beautiful and premium.
+2. Simple to understand and use.
+3. Detailed enough to manage complex family life.
+4. Offline-first.
+5. Privacy-first.
+6. Secure by design.
+7. Suitable for age-appropriate family use.
+8. Accessible to people with different abilities.
+9. Modular and scalable.
+10. Commercially viable.
+11. Easy to maintain and update.
+12. Designed to prevent duplicate records, duplicate business logic and inconsistent data.
+
+The experience should feel like a carefully designed premium productivity and household management product.
+
+Do not make the interface look like an ordinary administration dashboard.
+
+Do not overwhelm users with unnecessary buttons, technical terminology or complicated forms.
+
+Use progressive disclosure: show the essential information first and reveal advanced controls when needed.
+
+---
+
+# PART 2 — THE COMPLETE PRODUCT SCOPE
+
+FamilyOS must ultimately contain the following 12 major product modules.
+
+## MODULE 1 — AUTHENTICATION AND ACCOUNT MANAGEMENT
+
+Implement:
+
+- Account registration.
+- Email verification.
+- Secure login.
+- Google Sign-In.
+- Password recovery.
+- Secure logout.
+- Account profile.
+- Profile picture.
+- Cover picture.
+- Session management.
+- Device management.
+- Account security settings.
+- Optional biometric app unlock.
+- Account deletion.
+- Privacy and consent management.
+
+A user account must be separate from a family member profile.
+
+A family member must be able to exist without having a login account. This is especially important for children and dependants.
+
+## MODULE 2 — THE FAMILY
+
+Implement:
+
+- Family creation.
+- Family name.
+- Family description.
+- Family logo.
+- Family profile image.
+- Family cover image.
+- Family mission and values.
+- Multiple family workspaces.
+- Family invitations.
+- Secure invitation acceptance.
+- Family roles and permissions.
+- Family member profiles.
+- Personal profile pictures and covers.
+- Family relationships.
+- Family tree.
+- Birthdays.
+- Anniversaries.
+- Graduations.
+- Achievements.
+- Important family events.
+- Gift planning and tracking.
+- Family hobbies.
+- Family games.
+- Family activity planner.
+- Family meetings.
+- Family check-ins.
+- Relationship planning.
+- Appointments.
+- Editable family governance documents.
+- Printable family constitution.
+- Family rules and agreements.
+- Family values and vision documents.
+- Family history and memories.
+
+Family structures must be flexible and inclusive.
+
+Do not assume every household has the same structure.
+
+## MODULE 3 — GOALS, PROJECTS, TASKS AND CHECKLISTS
+
+Build a complete connected productivity system.
+
+Required hierarchy:
+
+GOAL
+→ PROJECTS
+→ TASKS
+→ CHECKLISTS AND SUBTASKS
+
+Implement:
+
+- Manual goal creation.
+- AI-assisted goal creation.
+- Goal categories.
+- Goal owners.
+- Contributors.
+- Milestones.
+- Target dates.
+- Progress tracking.
+- Project creation.
+- Project budgets.
+- Project timelines.
+- Project dependencies.
+- Task assignment.
+- Task priorities.
+- Recurring tasks.
+- Task reminders.
+- Multiple checklists per task.
+- Subtasks.
+- Attachments.
+- Completion history.
+- Calendar integration.
+- Manual editing of all AI-generated plans.
+
+AI-generated plans must always be reviewed and approved before being saved.
+
+## MODULE 4 — THE HOUSEHOLD
+
+Create the following connected systems.
+
+### A. Weekly Meal Planner
+
+- Seven-day weekly meal planner.
+- Breakfast, lunch, dinner and snacks.
+- Family meal preferences.
+- Allergies and dietary restrictions.
+- Recipe assignment.
+- Serving quantities.
+- Preparation time.
+- Cooking time.
+- Meal history.
+- Meal ratings.
+- Meal costs.
+- Automatic grocery list generation.
+- AI-assisted meal planning.
+
+### B. Professional Recipe Management
+
+Each recipe must support:
+
+- Recipe name.
+- Recipe picture.
+- Description.
+- Ingredients.
+- Quantities.
+- Measurement units.
+- Instructions.
+- Cooking time.
+- Preparation time.
+- Serving size.
+- Difficulty.
+- Cuisine.
+- Allergy information.
+- Storage instructions.
+- Estimated cost.
+- Personal family rating.
+- Comments.
+- Favourite status.
+
+Provide beautiful printable business-size recipe cards.
+
+Each printable recipe card must contain:
+
+- Recipe name.
+- Main photograph.
+- Personal rating.
+- Short recipe information.
+- QR code.
+
+The QR code must open the correct recipe through a secure FamilyOS route.
+
+Support recipe collections, cookbook exports, recipe scaling and cooking mode.
+
+### C. Food Inventory
+
+- Food items.
+- Quantity.
+- Units.
+- Storage location.
+- Purchase date.
+- Expiry date.
+- Stock levels.
+- Reorder thresholds.
+- Inventory adjustments.
+- Food usage.
+- Food waste tracking.
+- Grocery lists.
+- Recipe ingredient connections.
+
+### D. Chores and Responsibilities
+
+- Daily chores.
+- Weekly chores.
+- Monthly chores.
+- Recurring schedules.
+- Chore assignment.
+- Household zones.
+- Difficulty levels.
+- Estimated duration.
+- Completion tracking.
+- Optional verification.
+- Achievement badges.
+- Reward points.
+- Fair distribution.
+- Chore history.
+- Cleaning supply inventory.
+
+Use positive motivation, fairness and recognition. Do not create punitive or humiliating systems.
+
+### E. Wardrobe and Outfit Planner
+
+- Individual wardrobes.
+- Clothing pictures.
+- Clothing categories.
+- Seasonal clothing.
+- Weekly outfit planner.
+- Event outfits.
+- Travel outfits.
+- School and work outfits.
+- Clothing wishlist.
+- Purchase records.
+- Clothing care.
+- Storage locations.
+- Outfit combinations.
+
+AI may suggest combinations from the user's actual recorded wardrobe without judging anyone's body or appearance.
+
+### F. Home Management
+
+- Home assets.
+- Furniture.
+- Appliances.
+- Electronics.
+- Tools.
+- Equipment.
+- Purchase records.
+- Warranties.
+- Maintenance schedules.
+- Repairs.
+- Service providers.
+- Maintenance costs.
+- Replacement planning.
+- Home wishlist.
+- Printable home inventory.
+
+## MODULE 5 — FINANCE
+
+Build a reliable family financial management system.
+
+### A. Income
+
+- Salary.
+- Business income.
+- Freelance income.
+- Rental income.
+- Benefits.
+- Interest.
+- Other income.
+- Expected income.
+- Received income.
+- Recurring income.
+- Income history.
+
+### B. Expenses
+
+- Recurring expenses.
+- Fixed expenses.
+- Variable expenses.
+- One-time expenses.
+- Extra expenses.
+- Family expenses.
+- Personal expenses.
+- Planned versus actual expenses.
+- Payment history.
+
+### C. Savings
+
+- Multiple savings goals.
+- Goal images.
+- Target amounts.
+- Current balances.
+- Monthly contributions.
+- Contribution history.
+- Target dates.
+- Savings milestones.
+- Savings goal cards.
+- Savings checklists.
+- Suggested monthly contributions.
+
+### D. Cash-flow Planning
+
+Calculate:
+
+Available Before Savings =
+Expected Income
+- Planned Recurring Expenses
+- Planned Variable Expenses
+
+Available for Allocation =
+Available Before Savings
+- Other Planned Commitments
+
+Allow the user to allocate the available amount across savings goals, reserves and additional planned expenses.
+
+Clearly distinguish planned, actual, reserved and available amounts.
+
+Never count money twice.
+
+### E. Budget Management
+
+- Monthly budgets.
+- Annual budgets.
+- Category budgets.
+- Family budgets.
+- Personal budgets.
+- Budget allocations.
+- Actual spending.
+- Remaining budget.
+- Budget alerts.
+- Historical comparisons.
+
+### F. Net Worth
+
+Track:
+
+Assets:
+- Cash.
+- Accounts.
+- Savings.
+- Investments.
+- Property.
+- Vehicles.
+- Other assets.
+
+Liabilities:
+- Loans.
+- Mortgages.
+- Credit card balances.
+- Other debts.
+
+Net Worth = Total Assets - Total Liabilities.
+
+### G. Financial Visualizations
+
+Include:
+
+- Donut charts.
+- Bar charts.
+- Line charts.
+- Timeline charts.
+- Historical comparisons.
+- Income and expense trends.
+- Savings progress.
+- Budget performance.
+- Net worth history.
+
+CRITICAL FINANCIAL REQUIREMENT:
+
+Never use Float or Double for financial calculations.
+
+Use Long integer cents for monetary amounts, or another exact decimal representation with explicit rounding rules.
+
+All financial calculations must have automated tests.
+
+## MODULE 6 — SPIRITUAL GROWTH
+
+- Personal reflection.
+- Family reflection.
+- Reading plans.
+- Study notes.
+- Gratitude journal.
+- Personal goals.
+- Family goals.
+- Shared learning.
+- Spiritual milestones.
+- Family traditions.
+- Private and shared journals.
+
+Make this module customizable to each family's beliefs and preferences.
+
+## MODULE 7 — PERSONAL AND FAMILY DEVELOPMENT
+
+- Personal development plans.
+- Skills inventory.
+- Learning goals.
+- Reading tracker.
+- Courses.
+- Career development.
+- Habit planner.
+- Family learning goals.
+- Financial literacy.
+- Communication development.
+- Teamwork.
+- Leadership.
+- Life skills.
+- Shared learning activities.
+
+Connect development plans to the Goals and Tasks modules.
+
+## MODULE 8 — COUPLES PREPARATION BEFORE CHILDREN
+
+- Shared expectations.
+- Communication planning.
+- Conflict resolution education.
+- Household responsibility planning.
+- Financial preparation.
+- Lifestyle planning.
+- Parenting expectations.
+- Family support planning.
+- Relationship check-ins.
+- Shared goals.
+- Preparation projects.
+- Learning resources.
+
+This module must be supportive and educational, never a judgmental test or diagnosis.
+
+## MODULE 9 — PARENTING, TRAINING AND CHILD DEVELOPMENT
+
+- Child profiles.
+- Age-appropriate learning activities.
+- Education planning.
+- Reading plans.
+- Life skills.
+- Family routines.
+- School milestones.
+- Parent-child activities.
+- Homework planning.
+- Parenting resources.
+- Child achievements.
+- Age-appropriate responsibilities.
+- Development records.
+
+Do not provide diagnostic medical claims.
+
+Children's information must have particularly strict access controls and privacy protections.
+
+## MODULE 10 — HEALTH AND FITNESS
+
+- Personal wellbeing goals.
+- Family activities.
+- Exercise planning.
+- Walking and outdoor activities.
+- Sleep routines.
+- Hydration reminders.
+- Appointment records.
+- Health document storage.
+- Medication reminders where appropriate.
+- Private wellbeing records.
+
+Health data must be private by default and accessible only to authorized people.
+
+## MODULE 11 — FAMILY TRAINING, SAFETY AND SECURITY
+
+- Family emergency plans.
+- Emergency contact directory.
+- Emergency supplies.
+- Fire safety awareness.
+- First-aid awareness.
+- Home security inventory.
+- Smoke alarm maintenance.
+- Carbon monoxide alarm maintenance.
+- Emergency drills.
+- Digital safety education.
+- Personal safety education.
+- Family emergency check-ins.
+- Home safety maintenance.
+
+Any family tracking must be transparent, consent-based and appropriately restricted.
+
+Never implement covert location tracking, hidden monitoring or secret surveillance.
+
+## MODULE 12 — FAMILY INVESTMENT PLANNER
+
+- Investment portfolio records.
+- Asset classes.
+- Investment accounts.
+- Purchase records.
+- Quantity.
+- Cost basis.
+- Current valuation.
+- Fees.
+- Contributions.
+- Portfolio allocation.
+- Historical valuations.
+- Investment goals.
+- Contribution planner.
+- Scenario calculator.
+- Investment learning resources.
+- Review calendar.
+
+Distinguish actual returns from estimated valuation changes.
+
+Do not promise returns or present the app as a licensed financial adviser.
+
+---
+
+# PART 3 — CORE PRODUCT SYSTEMS
+
+The 12 modules must share common infrastructure.
+
+Build:
+
+1. Global calendar.
+2. Notification and reminder engine.
+3. Global search.
+4. Document manager.
+5. File and image management.
+6. Family activity history.
+7. Reports and insights.
+8. Permissions system.
+9. Audit history.
+10. AI assistant.
+11. Offline synchronization.
+12. Export and printing system.
+13. Family and personal dashboards.
+14. Premium subscription and entitlement system.
+
+Avoid duplicate implementations of common features.
+
+For example, all reminders must use one central reminder infrastructure rather than each module creating a separate notification system.
+
+All module screens must use the same design system and navigation framework.
+
+---
+
+# PART 4 — TECHNICAL ARCHITECTURE
+
+Use native Android development.
+
+Preferred technology stack:
+
+- Kotlin.
+- Jetpack Compose.
+- Material 3 with a custom premium theme.
+- MVVM.
+- Clean Architecture.
+- Repository pattern.
+- Room.
+- DataStore.
+- Kotlin Coroutines.
+- Kotlin Flow.
+- WorkManager.
+- Navigation Compose.
+- Firebase Authentication.
+- Firebase backend services, subject to architecture validation.
+- Secure Cloud Functions.
+- Firebase Storage.
+- Gemini API accessed only through a protected backend.
+- JUnit.
+- Compose UI testing.
+- Android integration testing.
+
+Use stable, compatible library versions.
+
+Before adding dependencies, check compatibility with the selected Android Gradle Plugin, Kotlin version, Compose compiler setup and minimum Android version.
+
+Do not blindly copy outdated dependency versions.
+
+Do not use unnecessary libraries.
+
+Do not introduce architectural complexity without a clear reason.
+
+## Application architecture
+
+Separate:
+
+- Presentation.
+- Domain.
+- Data.
+- Local persistence.
+- Remote data.
+- Synchronization.
+- Security.
+- AI services.
+- Notifications.
+- Shared design system.
+
+Use feature-based organization.
+
+Suggested structure:
+
+com.familyos
+  core/
+    common/
+    database/
+    datastore/
+    designsystem/
+    navigation/
+    security/
+    synchronization/
+    notifications/
+    files/
+    ai/
+    billing/
+
+  feature/
+    authentication/
+    dashboard/
+    family/
+    goals/
+    projects/
+    planner/
+    household/
+    meals/
+    recipes/
+    inventory/
+    chores/
+    wardrobe/
+    home/
+    finance/
+    spiritual/
+    development/
+    couples/
+    parenting/
+    health/
+    safety/
+    investments/
+    calendar/
+    documents/
+    reports/
+    settings/
+
+  app/
+
+You may recommend Gradle multi-module separation when justified by clear boundaries. Do not create excessive modules prematurely.
+
+---
+
+# PART 5 — OFFLINE-FIRST AND SYNCHRONIZATION
+
+The application must provide useful functionality without an internet connection.
+
+Use Room as the local operational database.
+
+Use a synchronization queue for changes that need to reach the backend.
+
+Implement:
+
+- Local writes.
+- Pending sync records.
+- Retry handling.
+- Conflict detection.
+- Version metadata.
+- Tombstones for deleted synchronized records.
+- Sync status.
+- Safe retry after application restart.
+- Network failure handling.
+- Permission revalidation.
+- Duplicate request prevention.
+
+Do not assume that last-write-wins is suitable for every record.
+
+Define conflict policies by data type.
+
+For example:
+- Task completion may need an event-based merge.
+- Financial transactions must never be silently overwritten.
+- Family membership changes must be authorized by the backend.
+- Private documents must not sync to unauthorized accounts.
+
+Clearly show whether data is local, pending synchronization, synchronized or failed.
+
+Never tell users that data is safely backed up unless the backup has actually completed.
+
+---
+
+# PART 6 — SECURITY AND PRIVACY
+
+Treat security as a product requirement, not a final development phase.
+
+Implement appropriate protections against:
+
+- Unauthorized access.
+- Account takeover.
+- Broken access control.
+- Insecure direct object references.
+- API abuse.
+- Data leakage.
+- Injection attacks.
+- Malicious file uploads.
+- Token theft.
+- Replay attacks.
+- Insecure local storage.
+- Excessive permissions.
+- Backend misconfiguration.
+
+Required principles:
+
+1. Least privilege.
+2. Deny by default.
+3. Server-side authorization.
+4. Secure token handling.
+5. Encryption in transit.
+6. Appropriate encryption at rest.
+7. Strict family-level data isolation.
+8. Secure invitation tokens.
+9. Rate limiting.
+10. Input validation.
+11. Safe file handling.
+12. Audit logging for sensitive operations.
+13. Dependency vulnerability monitoring.
+14. Secure database rules.
+15. No hardcoded API secrets.
+16. No production credentials committed to source control.
+
+Never rely on the Android interface to enforce permissions.
+
+The backend must verify the requesting user's identity, family membership and permission for every protected operation.
+
+For children:
+
+- Minimize personal data collection.
+- Use age-appropriate functionality.
+- Provide guardian-controlled permissions where appropriate.
+- Do not implement covert tracking.
+- Do not expose children's profiles publicly.
+- Do not use children's private data for AI training.
+- Do not use targeted advertising to children.
+- Avoid unnecessary sensitive data collection.
+
+Design with applicable privacy laws and child-protection requirements in mind, including GDPR and relevant children's privacy requirements.
+
+Before public release, identify which legal requirements apply to the actual users, countries, data and features.
+
+Do not claim legal compliance without an appropriate review.
+
+## Anti-cloning and intellectual property
+
+Protect the product using legitimate engineering and business measures:
+
+- Keep source code and signing keys private.
+- Use secure release signing.
+- Enable appropriate code shrinking and obfuscation.
+- Keep backend business logic server-side where appropriate.
+- Protect API access.
+- Use rate limits and abuse detection.
+- Protect brand assets and trademarks where available.
+- Maintain copyright ownership records.
+- Use appropriate open-source licences and attribution.
+- Keep development secrets out of public repositories.
+- Consider Google Play Integrity API for supported abuse and device-integrity signals.
+
+Understand that no client application can be made impossible to reverse-engineer or copy. The goal is to protect valuable intellectual property, backend services, user data and commercial operations while making unauthorized copying more difficult.
+
+---
+
+# PART 7 — PREMIUM DESIGN SYSTEM
+
+FamilyOS must look beautiful, modern, calm, warm and premium.
+
+The visual experience should communicate trust, organization, clarity and family wellbeing.
+
+Use this initial brand direction:
+
+Primary Forest Green: #173D35
+Warm Ivory: #F7F4EC
+Sage Green: #A8BDAA
+Secondary Sage: #6B8A6E
+Soft Gold: #C39A60
+Light Gold: #E7D1AA
+
+Design characteristics:
+
+- Elegant typography.
+- Clean visual hierarchy.
+- Beautiful spacing.
+- Rounded cards.
+- Subtle shadows.
+- High-quality icons.
+- Consistent illustrations where genuinely useful.
+- Premium chart styling.
+- Smooth but restrained transitions.
+- Accessible contrast.
+- Clear labels.
+- Responsive layouts.
+
+Use an 8dp spacing system.
+
+Recommended:
+- Card corner radius: 16–24dp.
+- Card internal padding: 16–20dp.
+- Minimum interactive touch target: 48dp.
+- Scalable typography.
+- Proper screen reader labels.
+
+Do not make every component a card.
+
+Avoid excessive gradients, visual clutter, excessive animation and unnecessary decoration.
+
+## Responsive design
+
+Support:
+- Android phones.
+- Tablets.
+- Foldable devices.
+- Desktop or large-screen Android layouts where supported.
+
+Use:
+- Bottom navigation on phones.
+- NavigationRail on suitable larger layouts.
+- Collapsible sidebar on large screens.
+- Adaptive dialogs and sheets.
+- Responsive content widths.
+
+All modules must look like parts of one product.
+
+---
+
+# PART 8 — COMMERCIAL PRODUCT STRATEGY
+
+FamilyOS must be designed so it can become a sustainable paid product.
+
+Plan for:
+
+- Free plan.
+- Premium individual plan.
+- Premium family plan.
+- Optional annual subscription.
+- Optional monthly subscription.
+- Transparent feature comparisons.
+- Clear cancellation.
+- Restore purchases.
+- Subscription entitlement management.
+
+Use Google Play Billing for Play-distributed digital subscriptions where required by applicable policy.
+
+Do not build deceptive trials, hidden charges, misleading buttons or confusing cancellation.
+
+Core safety, account access, privacy controls and essential data export must not be unfairly locked behind premium features.
+
+Do not put advertisements into children's experiences.
+
+Do not monetize personal family data.
+
+Design a feature entitlement system that can later support additional plans without scattering subscription checks throughout the codebase.
+
+Before release, verify the latest Google Play policies, billing requirements, target API requirements, Data Safety disclosures and developer account requirements.
+
+Prepare for a real commercial release, but do not publish automatically.
+
+---
+
+# PART 9 — QUALITY CONTROL AND TESTING
+
+I expect disciplined engineering.
+
+Every feature must have appropriate tests.
+
+Implement:
+
+- Unit tests.
+- Repository tests.
+- Room database tests.
+- Migration tests.
+- ViewModel tests.
+- UI tests.
+- Authentication tests.
+- Permission tests.
+- Synchronization tests.
+- Offline tests.
+- Financial calculation tests.
+- Accessibility checks.
+- Performance checks.
+
+Important scenarios:
+
+1. App starts with an empty database.
+2. App survives process death.
+3. User loses internet access.
+4. User reconnects after being offline.
+5. User belongs to multiple families.
+6. User switches family workspaces.
+7. User loses family membership.
+8. Unauthorized users attempt to access private data.
+9. A family invitation expires.
+10. A synchronization request is repeated.
+11. Two users edit the same record.
+12. A user deletes an item that is pending synchronization.
+13. A database migration runs against existing data.
+14. Financial calculations involve decimal values.
+15. A subscription expires.
+16. A user restores a purchase.
+17. A child profile has restricted permissions.
+
+Do not use fake authentication, fake cloud synchronization or fake production data.
+
+Test data must be clearly identified as test data.
+
+Never claim tests passed without actually running them and checking their results.
+
+Never claim a feature is complete merely because its screen exists.
+
+---
+
+# PART 10 — DEVELOPMENT STAGES AND PROJECT TRACKING
+
+Build this project through five controlled stages.
+
+STAGE 0 — ARCHITECTURE AND PRODUCT FOUNDATION
+- Product requirements.
+- Technical decisions.
+- Database architecture.
+- Security architecture.
+- Design system.
+- Feature boundaries.
+- Project structure.
+- Development standards.
+
+STAGE 1 — CORE PLATFORM
+- Authentication.
+- User profiles.
+- Family workspaces.
+- Invitations.
+- Memberships.
+- Permissions.
+- Local database.
+- Synchronization foundation.
+- Application shell.
+- Dashboard.
+
+STAGE 2 — FAMILY AND HOUSEHOLD
+- Family management.
+- Relationships.
+- Governance.
+- Goals.
+- Projects.
+- Tasks.
+- Checklists.
+- Calendar.
+- Meals.
+- Recipes.
+- QR cards.
+- Food inventory.
+- Chores.
+- Wardrobe.
+- Home management.
+
+STAGE 3 — FINANCE AND WELLBEING
+- Income.
+- Expenses.
+- Budgets.
+- Savings.
+- Net worth.
+- Investments.
+- Spiritual growth.
+- Development.
+- Couples preparation.
+- Parenting.
+- Health.
+- Safety.
+
+STAGE 4 — AI AND PREMIUM EXPERIENCE
+- Gemini integration.
+- AI planning.
+- AI-generated content.
+- Reports.
+- Smart suggestions.
+- Advanced search.
+- Printable documents.
+- Premium subscriptions.
+- Entitlement management.
+
+STAGE 5 — QUALITY AND PUBLIC RELEASE
+- Full regression testing.
+- Security assessment.
+- Privacy review.
+- Performance.
+- Accessibility.
+- Family beta testing.
+- Bug fixing.
+- Google Play preparation.
+- Release candidate.
+
+Maintain these project documents:
+
+1. FAMILYOS_MASTER_PLAN.md
+2. FAMILYOS_ARCHITECTURE.md
+3. FAMILYOS_DATABASE_SCHEMA.md
+4. FAMILYOS_SECURITY_PLAN.md
+5. FAMILYOS_DESIGN_SYSTEM.md
+6. FAMILYOS_FEATURE_REGISTER.md
+7. FAMILYOS_MASTER_PROGRESS.md
+8. FAMILYOS_TEST_STRATEGY.md
+9. FAMILYOS_RELEASE_CHECKLIST.md
+10. CHANGELOG.md
+
+Update the progress document after every completed assignment.
+
+For every feature record:
+
+- Feature name.
+- Stage.
+- Status: NOT STARTED, IN PROGRESS, BLOCKED, TESTING or COMPLETE.
+- Dependencies.
+- Files created or modified.
+- Database changes.
+- Tests performed.
+- Known limitations.
+- Remaining work.
+
+Maintain one source of truth for the project plan.
+
+Never create duplicate planning documents that contradict one another.
+
+---
+
+# PART 11 — STRICT DEVELOPMENT RULES
+
+These rules are mandatory.
+
+1. Do not attempt to implement all 12 modules in one coding operation.
+2. Do not skip architectural design.
+3. Do not duplicate entities, repositories, services, ViewModels or business logic.
+4. Do not create placeholder screens and declare them complete.
+5. Do not use mock authentication in production.
+6. Do not use fake cloud synchronization.
+7. Do not hardcode secrets.
+8. Do not use floating-point money calculations.
+9. Do not create uncontrolled database migrations.
+10. Do not silently remove working functionality.
+11. Do not make unapproved breaking architectural changes.
+12. Do not hide errors.
+13. Do not suppress compiler errors merely to make the build pass.
+14. Do not ignore security warnings.
+15. Do not mark a stage complete without acceptance tests.
+16. Do not introduce unnecessary dependencies.
+17. Do not create unnecessarily complicated user journeys.
+18. Do not sacrifice accessibility.
+19. Do not allow AI to save important generated records without user approval.
+20. Document important architectural decisions.
+
+When something is unclear, identify the uncertainty and recommend a technically justified solution instead of inventing assumptions.
+
+When a decision has significant long-term consequences, explain the options and recommend one.
+
+Prefer a simple, robust design over unnecessary complexity.
+
+---
+
+# PART 12 — YOUR FIRST ASSIGNMENT: STAGE 0
+
+IMPORTANT: Do not immediately start generating the entire application.
+
+Your first assignment is to act as the architect and prepare the complete technical foundation.
+
+Perform these tasks:
+
+1. Inspect the current development workspace and confirm whether it is empty or contains an existing project.
+2. Confirm the available Android SDK, Gradle, Kotlin and development environment.
+3. Define the minimum supported Android version and the target Android configuration. Explain your recommendation.
+4. Select compatible, stable technology and library versions.
+5. Design the full application architecture.
+6. Design the user account, family membership and family profile model.
+7. Design the permissions and family access model.
+8. Design the database foundations and relationships for all 12 modules.
+9. Identify shared entities and prevent duplicate models.
+10. Design offline-first synchronization.
+11. Design the authentication and backend architecture.
+12. Design the AI integration architecture.
+13. Design the security and privacy model.
+14. Define the premium design system.
+15. Define the navigation and dashboard architecture.
+16. Design the commercial subscription architecture.
+17. Define the testing strategy.
+18. Create the project tracking documents listed above.
+19. Create a detailed feature dependency map.
+20. Create a practical implementation sequence for all stages.
+
+Do not generate every database table in a rushed, unreviewed implementation.
+
+Produce a complete logical data model and implementation plan first. Separate foundational entities from feature-specific entities.
+
+If the workspace is empty, prepare the recommended clean Android project foundation after documenting the architecture. Do not start implementing all application modules.
+
+If an existing project is discovered, do not delete or replace it. Report what is present and recommend the appropriate next action.
+
+## Required final response for this first assignment
+
+Return:
+
+A. Workspace inspection.
+B. Recommended technology stack.
+C. Architecture explanation.
+D. Complete feature dependency map.
+E. Initial database architecture.
+F. Authentication and security architecture.
+G. Premium UI/UX design specification.
+H. Offline and synchronization design.
+I. AI architecture.
+J. Monetization architecture.
+K. Testing and quality strategy.
+L. Project folder structure.
+M. Stage-by-stage development roadmap.
+N. Risks and architectural decisions requiring approval.
+O. Exact next implementation assignment.
+
+Then update FAMILYOS_MASTER_PROGRESS.md.
+
+At the end, display:
+
+FAMILYOS PROJECT STATUS
+
+Current Stage: 0 — Architecture and Product Foundation
+Completed:
+In Progress:
+Not Started:
+Blocked:
+Tests:
+Build Status:
+Next Assignment:
+Overall Project Completion:
+
+Use honest progress percentages based on verified implementation, not estimated enthusiasm.
+
+Wait for my review of the architecture before making major implementation decisions that could affect the whole application.
+
+Your goal is to help me build a real, premium, reliable and commercially viable FamilyOS — not merely to produce code that looks impressive.

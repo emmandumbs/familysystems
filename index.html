@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FamilyOS — Premium Family Operating System</title>
+    <meta name="description" content="Premium Digital Operating System for Family and Household Life" />
+    <meta property="og:title" content="FamilyOS — Premium Family Operating System" />
+    <meta property="og:description" content="Premium Digital Operating System for Family and Household Life" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#173D35" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FamilyOS" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <script>
+      // Gracefully handle HMR WebSocket disconnects in AI Studio preview environment
+      (function () {
+        if (typeof window !== 'undefined' && window.WebSocket) {
+          const OrigWS = window.WebSocket;
+          function ViteSafeWS(url, protocols) {
+            if (protocols === 'vite-hmr' || (typeof url === 'string' && url.includes('token='))) {
+              const target = new EventTarget();
+              target.readyState = 1;
+              target.OPEN = 1;
+              target.CLOSED = 3;
+              target.CLOSING = 2;
+              target.CONNECTING = 0;
+              target.binaryType = 'blob';
+              target.protocol = 'vite-hmr';
+              target.url = String(url);
+              target.send = function () {};
+              target.close = function () {
+                target.readyState = 3;
+              };
+              setTimeout(function () {
+                target.dispatchEvent(new Event('open'));
+              }, 10);
+              return target;
+            }
+            return new OrigWS(url, protocols);
+          }
+          ViteSafeWS.prototype = OrigWS.prototype;
+          ViteSafeWS.CONNECTING = 0;
+          ViteSafeWS.OPEN = 1;
+          ViteSafeWS.CLOSING = 2;
+          ViteSafeWS.CLOSED = 3;
+          window.WebSocket = ViteSafeWS;
+        }
+
+        const origError = console.error;
+        console.error = function (...args) {
+          const msg = args.map((a) => (a && a.stack ? a.stack : String(a))).join(' ');
+          if (msg.includes('WebSocket') || msg.includes('[vite]') || msg.includes('vite:ws:disconnect')) {
+            return;
+          }
+          origError.apply(console, args);
+        };
+
+        window.addEventListener('unhandledrejection', function (e) {
+          if (e.reason && (e.reason.message?.includes('WebSocket') || String(e.reason).includes('WebSocket') || String(e.reason).includes('[vite]'))) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        });
+        window.addEventListener('error', function (e) {
+          if (e.message && (e.message.includes('WebSocket') || e.message.includes('[vite]'))) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

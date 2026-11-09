@@ -1,0 +1,49 @@
+name: FamilyOS Web & Backend CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+  NODE_ENV: 'test'
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-verify:
+    name: TypeScript Lint, Production Build & Test Suites
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies cleanly
+        run: npm ci
+
+      - name: Run TypeScript typecheck & lint
+        run: npm run lint
+
+      - name: Run production Vite bundle build
+        run: npm run build
+
+      - name: Execute automated verification test suites
+        env:
+          NODE_ENV: test
+        run: |
+          npx tsx tests/simplification-and-stabilization.test.ts
+          npx tsx tests/one-family-system.test.ts
+          npx tsx tests/home-and-family-rebuild.test.ts
+          npx tsx tests/stage-4-ai-and-intelligence.test.ts
+          npx tsx tests/stage-5-compliance-audit.test.ts
+          npx tsx tests/postgres-scoped-isolation.test.ts

@@ -1,0 +1,150 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model & Security Rules for FamilyOS Stage 3.2
+    // ===============================================================
+    //
+    // Collection: /workspaces/{familyId}
+    // Required fields: id, name, currencyCode, ownerUserId, version, updatedAt
+    //
+    // Collection: /workspaces/{familyId}/memberships/{userId}
+    // Required fields: id, familyId, userAccountId, memberProfileId, role, status, updatedAt
+    //
+    // Collection: /workspaces/{familyId}/accounts/{accountId}
+    // Required fields: id, familyId, name, accountType, currentBalanceCents, isLiability, institution
+    //
+    // Collection: /workspaces/{familyId}/transactions/{transactionId}
+    // Required fields: id, familyId, accountId, title, amountCents, transactionType, category, transactionDate, isReversal
+    //
+    // Collection: /workspaces/{familyId}/entities/{entityKey}
+    // Required fields: id, familyId, entityType, version, isDeleted, updatedAt
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isBootstrappedAdmin() {
+      return isAuthenticated() &&
+        request.auth.token.email == "emmanuelsillah19@gmail.com" &&
+        request.auth.token.email_verified == true;
+    }
+
+    function membershipPath(familyId) {
+      return /databases/$(database)/documents/workspaces/$(familyId)/memberships/$(request.auth.uid);
+    }
+
+    function hasActiveMembership(familyId) {
+      return isBootstrappedAdmin() || (
+        isAuthenticated() &&
+        exists(membershipPath(familyId)) &&
+        get(membershipPath(familyId)).data.status == "ACTIVE"
+      );
+    }
+
+    function isFamilyOwnerOrAdmin(familyId) {
+      return isBootstrappedAdmin() || (
+        hasActiveMembership(familyId) &&
+        get(membershipPath(familyId)).data.role in ["OWNER", "ADMIN"]
+      );
+    }
+
+    function isValidWorkspace(data, familyId) {
+      return data.keys().hasAll(["id", "name", "currencyCode", "ownerUserId", "version", "updatedAt"]) &&
+        data.id == familyId &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 120 &&
+        data.currencyCode is string && data.currencyCode.size() == 3 &&
+        data.ownerUserId is string && data.ownerUserId.size() > 0 && data.ownerUserId.size() <= 128 &&
+        data.version is int && data.version >= 1 &&
+        data.updatedAt is int;
+    }
+
+    function isValidMembership(data, familyId, userId) {
+      return data.keys().hasAll(["id", "familyId", "userAccountId", "memberProfileId", "role", "status", "updatedAt"]) &&
+        data.familyId == familyId &&
+        data.userAccountId == userId &&
+        data.memberProfileId is string && data.memberProfileId.size() > 0 && data.memberProfileId.size() <= 128 &&
+        data.role in ["OWNER", "ADMIN", "MEMBER", "CHILD", "GUEST"] &&
+        data.status in ["ACTIVE", "INVITED", "SUSPENDED", "REVOKED"] &&
+        data.updatedAt is int;
+    }
+
+    function isValidFinancialAccount(data, familyId, accountId) {
+      return data.keys().hasAll(["id", "familyId", "name", "accountType", "currentBalanceCents", "isLiability", "institution"]) &&
+        data.id == accountId &&
+        data.familyId == familyId &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 120 &&
+        data.accountType in ["CHECKING", "SAVINGS", "CREDIT_CARD", "INVESTMENT", "CASH", "LOAN"] &&
+        data.currentBalanceCents is int &&
+        data.isLiability is bool &&
+        data.institution is string && data.institution.size() <= 120;
+    }
+
+    function isValidTransaction(data, familyId, transactionId) {
+      return data.keys().hasAll(["id", "familyId", "accountId", "title", "amountCents", "transactionType", "category", "transactionDate", "isReversal"]) &&
+        data.id == transactionId &&
+        data.familyId == familyId &&
+        data.accountId is string && data.accountId.size() > 0 && data.accountId.size() <= 128 &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+        data.amountCents is int && data.amountCents > 0 &&
+        data.transactionType in ["INCOME", "EXPENSE", "TRANSFER"] &&
+        data.category is string && data.category.size() > 0 && data.category.size() <= 64 &&
+        data.transactionDate is int &&
+        data.isReversal is bool;
+    }
+
+    function isValidSyncEntity(data, familyId) {
+      return data.keys().hasAll(["id", "familyId", "entityType", "version", "isDeleted", "updatedAt"]) &&
+        data.familyId == familyId &&
+        data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+        data.entityType is string && data.entityType.size() > 0 && data.entityType.size() <= 64 &&
+        data.version is int && data.version >= 1 &&
+        data.isDeleted is bool &&
+        data.updatedAt is int;
+    }
+
+    match /workspaces/{familyId} {
+      allow read: if hasActiveMembership(familyId);
+      allow create: if isAuthenticated() && isValidWorkspace(request.resource.data, familyId) &&
+        (request.resource.data.ownerUserId == request.auth.uid || isBootstrappedAdmin());
+      allow update: if isFamilyOwnerOrAdmin(familyId) &&
+        isValidWorkspace(request.resource.data, familyId) &&
+        request.resource.data.ownerUserId == resource.data.ownerUserId;
+      allow delete: if false;
+
+      match /memberships/{userId} {
+        allow read: if (isAuthenticated() && request.auth.uid == userId) || hasActiveMembership(familyId);
+        allow create, update: if isFamilyOwnerOrAdmin(familyId) &&
+          isValidMembership(request.resource.data, familyId, userId);
+        allow delete: if false;
+      }
+
+      match /accounts/{accountId} {
+        allow read: if isFamilyOwnerOrAdmin(familyId);
+        allow create, update: if isFamilyOwnerOrAdmin(familyId) &&
+          isValidFinancialAccount(request.resource.data, familyId, accountId);
+        allow delete: if false;
+      }
+
+      match /transactions/{transactionId} {
+        allow read: if isFamilyOwnerOrAdmin(familyId);
+        // Append-only ledger: transactions can be created by OWNER/ADMIN, never overwritten or deleted
+        allow create: if isFamilyOwnerOrAdmin(familyId) &&
+          isValidTransaction(request.resource.data, familyId, transactionId);
+        allow update, delete: if false;
+      }
+
+      match /entities/{entityKey} {
+        allow read: if hasActiveMembership(familyId);
+        allow create, update: if hasActiveMembership(familyId) &&
+          isValidSyncEntity(request.resource.data, familyId);
+        allow delete: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

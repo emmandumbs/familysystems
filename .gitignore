@@ -1,0 +1,25 @@
+node_modules/
+build/
+dist/
+dev-dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Runtime data, databases, backups & local vaults
+.aistudio/
+/data/
+data/
+backups/
+*.bak
+*.bak.*
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite*
+vault/
+*.vault

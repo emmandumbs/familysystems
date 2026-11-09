@@ -1,36 +1,180 @@
-# This is a basic workflow to help you get started with Actions
+name: FamilyOS Native Android CI
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches: [ "main", "stage2", "stage2.1" ]
   pull_request:
     branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  verify-and-build:
+    name: Build, Lint & Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      # 1. Checkout repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      # 2. Validate Gradle Wrapper integrity
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      # 3. Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # 4. Set up Android SDK & accept licenses
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: |
+            platform-tools
+            platforms;android-35
+            build-tools;35.0.0
+
+      - name: Accept Android SDK Licenses
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          yes | sdkmanager --licenses || if [ $? -ne 141 ]; then exit $?; fi
+
+      # 5. Grant execute permissions to Gradle wrapper
+      - name: Grant Execute Permission for Gradle Wrapper
+        run: chmod +x android/gradlew
+
+      # 6. Run Kotlin Compilation for Debug & Unit Tests
+      - name: Compile Kotlin Sources
+        working-directory: ./android
+        run: ./gradlew compileDebugKotlin compileDebugUnitTestKotlin --no-daemon --stacktrace
+
+      # 7. Run Unit Tests (Room migrations, DAG relationships, Recurrence, RBAC, Financials)
+      - name: Run Unit Tests
+        working-directory: ./android
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+
+      # 8. Run Android Lint for Code Quality & Compatibility
+      - name: Run Android Lint
+        working-directory: ./android
+        run: ./gradlew lintDebug --no-daemon
+
+      # 9. Build Debug & Release APKs (Verifying R8/ProGuard shrinking rules)
+      - name: Build Debug APK
+        working-directory: ./android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Build Release APK (Verify ProGuard / R8 Shrinking)
+        working-directory: ./android
+        run: ./gradlew assembleRelease --no-daemon
+
+      # 10. Upload Unit Test Reports
+      - name: Upload Unit Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: android/app/build/reports/tests/testDebugUnitTest/
+          retention-days: 14
+
+      # 11. Upload Lint Report
+      - name: Upload Lint Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-lint-report
+          path: android/app/build/reports/lint-results-debug.html
+          retention-days: 14
+
+      # 12. Upload Debug APK Artifact
+      - name: Upload Debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: familyos-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+  instrumentation-tests:
+    name: Headless Emulator Instrumentation Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      # 1. Checkout repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Validate Gradle Wrapper integrity
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
+
+      # 3. Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # 4. Set up Android SDK & accept licenses
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: |
+            platform-tools
+            platforms;android-35
+            platforms;android-34
+            build-tools;35.0.0
+            emulator
+            system-images;android-34;google_apis;x86_64
+
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | sdkmanager --licenses || if [ $? -ne 141 ]; then exit $?; fi
+
+      # 5. Grant execute permissions to Gradle wrapper
+      - name: Grant Execute Permission for Gradle Wrapper
+        run: chmod +x android/gradlew
+
+      # 6. Enable KVM Hardware Virtualization on runner
+      - name: Enable KVM Hardware Virtualization
+        run: |
+          echo "Checking KVM support..."
+          ls -l /dev/kvm || true
+          sudo chmod 777 /dev/kvm || true
+
+      # 7. Cache AVD image
+      - name: AVD Cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-api34-x86_64
+
+      # 8. Start Headless Android Emulator and Run Instrumentation Tests
+      - name: Run Android Instrumentation Tests (Emulator)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          working-directory: ./android
+          script: ./gradlew connectedDebugAndroidTest --no-daemon --stacktrace
+
+      # 9. Upload Instrumentation Test Reports
+      - name: Upload Instrumentation Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumentation-test-reports
+          path: android/app/build/reports/androidTests/connected/
+          retention-days: 14

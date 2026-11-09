@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E2822" />
+      <stop offset="50%" stop-color="#173D35" />
+      <stop offset="100%" stop-color="#091A16" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F2E3C6" />
+      <stop offset="50%" stop-color="#C39A60" />
+      <stop offset="100%" stop-color="#9A7236" />
+    </linearGradient>
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Outer Elegant Gold Ring -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="url(#goldGrad)" stroke-width="4" opacity="0.4" />
+  <circle cx="256" cy="256" r="198" fill="none" stroke="url(#goldGrad)" stroke-width="2" stroke-dasharray="6 8" opacity="0.6" />
+
+  <!-- Architectural House / Sanctuary Roofline & Crest -->
+  <g filter="url(#goldGlow)">
+    <!-- Roof Gable -->
+    <path d="M 140 220 L 256 124 L 372 220" fill="none" stroke="url(#goldGrad)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Chimney / Pillar -->
+    <path d="M 320 170 L 320 140 L 344 140 L 344 190" fill="none" stroke="url(#goldGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Keystone / Star above peak -->
+    <polygon points="256,92 262,106 276,108 266,118 268,132 256,124 244,132 246,118 236,108 250,106" fill="url(#goldGrad)" />
+  </g>
+
+  <!-- Central FamilyOS Monogram & Hearth Tree -->
+  <g transform="translate(256, 310)">
+    <!-- Base Shield / Foundation -->
+    <path d="M -80 -40 C -80 60, 0 110, 0 110 C 0 110, 80 60, 80 -40 Z" fill="#0A1E19" stroke="url(#goldGrad)" stroke-width="5" />
+    
+    <!-- Stylized Serif 'F' & 'OS' intertwined -->
+    <text x="-4" y="32" font-family="Georgia, serif" font-size="76" font-weight="bold" fill="url(#goldGrad)" text-anchor="middle" letter-spacing="1">F</text>
+    <path d="M -30 48 L 30 48" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round" />
+    <circle cx="0" cy="66" r="4" fill="url(#goldGrad)" />
+  </g>
+
+  <!-- Subtle Micro Leaves (Growth / Household) -->
+  <path d="M 210 240 C 200 220 220 210 230 225 C 230 240 220 245 210 240 Z" fill="url(#goldGrad)" opacity="0.8" />
+  <path d="M 302 240 C 312 220 292 210 282 225 C 282 240 292 245 302 240 Z" fill="url(#goldGrad)" opacity="0.8" />
+</svg>

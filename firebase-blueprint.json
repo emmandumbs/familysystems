@@ -1,0 +1,108 @@
+{
+  "entities": {
+    "FamilyWorkspace": {
+      "title": "FamilyWorkspace",
+      "description": "Root household container for multi-family workspace isolation.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "currencyCode": { "type": "string" },
+        "ownerUserId": { "type": "string" },
+        "version": { "type": "integer" },
+        "updatedAt": { "type": "integer" },
+        "isDeleted": { "type": "boolean" }
+      },
+      "required": ["id", "name", "currencyCode", "ownerUserId", "version", "updatedAt"]
+    },
+    "FamilyMembership": {
+      "title": "FamilyMembership",
+      "description": "Authoritative server-side RBAC membership binding a Firebase UID to a family workspace and role.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "familyId": { "type": "string" },
+        "userAccountId": { "type": "string" },
+        "memberProfileId": { "type": "string" },
+        "role": { "type": "string", "enum": ["OWNER", "ADMIN", "MEMBER", "CHILD", "GUEST"] },
+        "status": { "type": "string", "enum": ["ACTIVE", "INVITED", "SUSPENDED", "REVOKED"] },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["id", "familyId", "userAccountId", "memberProfileId", "role", "status", "updatedAt"]
+    },
+    "FinancialAccount": {
+      "title": "FinancialAccount",
+      "description": "Household financial account with exact 64-bit integer cents balance.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "familyId": { "type": "string" },
+        "name": { "type": "string" },
+        "accountType": { "type": "string", "enum": ["CHECKING", "SAVINGS", "CREDIT_CARD", "INVESTMENT", "CASH", "LOAN"] },
+        "currentBalanceCents": { "type": "integer" },
+        "isLiability": { "type": "boolean" },
+        "institution": { "type": "string" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["id", "familyId", "name", "accountType", "currentBalanceCents", "isLiability", "institution"]
+    },
+    "FinancialTransaction": {
+      "title": "FinancialTransaction",
+      "description": "Immutable append-only financial transaction in integer cents with compensating audit reversal support.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "familyId": { "type": "string" },
+        "accountId": { "type": "string" },
+        "destinationAccountId": { "type": "string" },
+        "title": { "type": "string" },
+        "amountCents": { "type": "integer" },
+        "transactionType": { "type": "string", "enum": ["INCOME", "EXPENSE", "TRANSFER"] },
+        "category": { "type": "string" },
+        "transactionDate": { "type": "integer" },
+        "isReversal": { "type": "boolean" },
+        "reversalOfId": { "type": "string" },
+        "paidBy": { "type": "string" },
+        "idempotencyKey": { "type": "string" }
+      },
+      "required": ["id", "familyId", "accountId", "title", "amountCents", "transactionType", "category", "transactionDate", "isReversal"]
+    },
+    "SyncEntityRecord": {
+      "title": "SyncEntityRecord",
+      "description": "Synchronized household domain entity record across Android Room and Web.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "familyId": { "type": "string" },
+        "entityType": { "type": "string" },
+        "version": { "type": "integer" },
+        "isDeleted": { "type": "boolean" },
+        "updatedAt": { "type": "integer" },
+        "payloadJson": { "type": "string" }
+      },
+      "required": ["id", "familyId", "entityType", "version", "isDeleted", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/workspaces/{familyId}": {
+      "schema": { "$ref": "#/entities/FamilyWorkspace" },
+      "description": "Authoritative household workspaces."
+    },
+    "/workspaces/{familyId}/memberships/{userAccountId}": {
+      "schema": { "$ref": "#/entities/FamilyMembership" },
+      "description": "Authoritative server-side RBAC memberships indexed by Firebase user UID."
+    },
+    "/workspaces/{familyId}/accounts/{accountId}": {
+      "schema": { "$ref": "#/entities/FinancialAccount" },
+      "description": "Household financial accounts in integer cents."
+    },
+    "/workspaces/{familyId}/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/FinancialTransaction" },
+      "description": "Append-only household financial ledger transactions."
+    },
+    "/workspaces/{familyId}/entities/{entityKey}": {
+      "schema": { "$ref": "#/entities/SyncEntityRecord" },
+      "description": "Synchronized household entities (tasks, chores, meals, recipes, wellbeing, emergency)."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "FamilyOS",
+  "description": "Premium Digital Operating System for Family and Household Life",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

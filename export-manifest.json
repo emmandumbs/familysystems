@@ -1,0 +1,32 @@
+{
+  "appName": "FamilyOS",
+  "version": "3.4.1",
+  "commitSha": "da213bcfac17af58be8fa814a221de22ca0e4916",
+  "verifiedAt": "2026-11-06T01:05:00.000Z",
+  "testSuitesCount": 9,
+  "verifiedAssertionsCount": 102,
+  "compilationStatus": "PASSED",
+  "lintStatus": "PASSED (0 errors)",
+  "fileHashesSha256": {
+    "src/server/authAndRbac.ts": "511d9e5d51e80f311fd55eac3234091e806331fd077041cd69f214781ff02bc5",
+    "src/server/financeRoutes.ts": "f5e5820db04ca2916a50775bacb1c17789649c3b0e108a835049fc25fd7b62f2",
+    "src/server/financeCalculations.ts": "749f4bf6a2bc97dff56dab15f71ef50914acceccb2c94fb66ac4844f0e8ca5c4",
+    "src/server/postgresMigrationAndBackup.ts": "9c3928f2f2d1dbd8ad6c84c87315bcb2460227d6ccf64487b39fcdc8fc4591d1",
+    "migrations/postgres/0001_familyos_v340_up.sql": "2128ed40e2d5ea38ce965d03175fd20504005b8c528f6c1fd1742ea2e39be4bb",
+    "migrations/postgres/0002_familyos_v341_reconciliation_up.sql": "24ba0ec121272392c3500b7164a632fdd62f6a05c791cf9521c0ccaccdcef4cc",
+    "tests/eighth-pass-verification.test.ts": "fe2207bee67f3de1c5b805c3e81c9048cc4cb34204e1e2efcffa58339a21700c",
+    "tests/seventh-pass-verification.test.ts": "840f72cc1b4ce2f5d1ff25638fb0f90a672d8cdfa6fdbb3413e421fdedbdcc43",
+    "tests/sixth-pass-verification.test.ts": "c430ae0381ed6b18226e88c3b89a9a4a56bc9f93a49c6f2d70f9ca9098b07ace",
+    "tests/fifth-pass-verification.test.ts": "f4718fe32b08872c842b69c95e81e587621831a1a4635b5799fb1718ba05e39d",
+    "tests/pglite-double-entry.test.ts": "8f7eaf1e3dedbd2fba7da0147159943f9bbcb05ebfa88faf9bf8929362629b7f"
+  },
+  "runtimeIntegritySummary": {
+    "postgresAuthSessions": "CONNECTED TO RUNTIME & TESTED IN PGLITE (SHA-256 Token Hash Enforcement)",
+    "postgresFinancePosting": "CONNECTED TO RUNTIME & TESTED IN PGLITE (All 8 Mutation Routes)",
+    "idempotencyPayloadMismatch": "CONNECTED TO RUNTIME & TESTED IN PGLITE (HTTP 409 Conflict Protection)",
+    "reconciliationAtomicParameterized": "CONNECTED TO RUNTIME & TESTED IN PGLITE ($1 Parameterized Queries)",
+    "historicalLedgerBackfill": "CONNECTED TO RUNTIME & TESTED IN PGLITE (Safe & Idempotent)",
+    "backupEncryptionKeyManagement": "CONNECTED TO RUNTIME & TESTED IN NODE (Dedicated Secret Separation)",
+    "liveExternalPostgres": "BLOCKED BY ENVIRONMENT (No live PG daemon configured in AI Studio test runner)"
+  }
+}
