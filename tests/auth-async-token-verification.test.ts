@@ -221,7 +221,7 @@ async function runAuthVerificationSuite() {
     console.log('  ✓ [TEST 8] PASS: Unverified email returns emailVerified=false in sync payload');
 
     // 9. GDPR Account Deletion
-    const deleteUid = 'usr-[#173D35]-del';
+    const deleteUid = 'usr-delete-me-1';
     const deleteIdToken = createTestFirebaseIdToken({
       uid: deleteUid,
       email: 'delete.me@familyos.local',

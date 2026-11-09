@@ -2876,5 +2876,32 @@ class FamilyOSViewModel(application: Application) : AndroidViewModel(application
             SyncWorker.enqueueImmediateSync(getApplication())
         } catch (_: Exception) {}
     }
+
+    suspend fun signInWithEmail(email: String, pass: String): Result<UserAccount> {
+        val result = app.authRepository.signInWithEmail(email, pass)
+        val freshToken = app.authRepository.getFreshIdToken(forceRefresh = true).getOrNull()
+        if (freshToken != null) {
+            app.updateEncryptedSyncConfig(null, freshToken)
+        }
+        return result
+    }
+
+    suspend fun registerWithEmail(email: String, pass: String): Result<UserAccount> {
+        val result = app.authRepository.registerWithEmail(email, pass)
+        val freshToken = app.authRepository.getFreshIdToken(forceRefresh = true).getOrNull()
+        if (freshToken != null) {
+            app.updateEncryptedSyncConfig(null, freshToken)
+        }
+        return result
+    }
+
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return app.authRepository.sendPasswordResetEmail(email)
+    }
+
+    suspend fun sendEmailVerification(): Result<Unit> {
+        return app.authRepository.sendEmailVerification()
+    }
 }
+
 

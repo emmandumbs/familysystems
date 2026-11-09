@@ -33,7 +33,8 @@ enum class FamilyOSDestination(
     DOCUMENTS("documents", "Documents", Icons.Default.Folder),
     REPORTS("reports", "Reports & Insights", Icons.Default.BarChart),
     USER_PROFILE("user_profile", "User Profile & Account", Icons.Default.Person),
-    SETTINGS("settings", "Settings", Icons.Default.Settings);
+    SETTINGS("settings", "Settings", Icons.Default.Settings),
+    AUTH("auth", "Authentication", Icons.Default.Lock);
 
     companion object {
         fun fromRoute(route: String?): FamilyOSDestination {

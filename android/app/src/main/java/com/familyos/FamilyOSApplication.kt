@@ -89,6 +89,9 @@ class FamilyOSApplication : Application() {
     lateinit var searchRepository: SearchRepository
         private set
 
+    lateinit var authRepository: AuthRepository
+        private set
+
     override fun onCreate() {
         super.onCreate()
         database = FamilyOSDatabase.getInstance(this, useEncryption = true)
@@ -143,6 +146,10 @@ class FamilyOSApplication : Application() {
         )
         familySectionRepository = FamilySectionRepositoryImpl(database.familySectionDao())
         searchRepository = SearchRepositoryImpl(database.searchDao())
+        authRepository = com.familyos.core.auth.FirebaseAuthRepositoryImpl(
+            try { com.google.firebase.auth.FirebaseAuth.getInstance() } catch (_: Exception) { null },
+            database.userProfileDao()
+        )
 
         try {
             SyncWorker.schedulePeriodicSync(this)

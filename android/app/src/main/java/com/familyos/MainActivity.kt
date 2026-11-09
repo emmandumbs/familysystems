@@ -53,6 +53,7 @@ import com.familyos.feature.meals.MealPlannerScreen
 import com.familyos.feature.pantry.PantryScreen
 import com.familyos.feature.recipes.RecipeLibraryScreen
 import com.familyos.feature.safety.EmergencyScreen
+import com.familyos.feature.auth.AuthScreen
 import com.familyos.feature.wardrobe.WardrobeScreen
 import com.familyos.feature.wellbeing.WellbeingScreen
 import kotlinx.coroutines.launch
@@ -819,6 +820,50 @@ class MainActivity : FragmentActivity() {
                                 },
                                 onRequestAccountDeletion = { onDone ->
                                     viewModel.requestSelfServiceAccountDeletion(onDone)
+                                }
+                            )
+                        }
+                        FamilyOSDestination.AUTH -> {
+                            var isAuthLoading by remember { mutableStateOf(false) }
+                            var authError by remember { mutableStateOf<String?>(null) }
+                            AuthScreen(
+                                currentEmail = null,
+                                isEmailVerified = true,
+                                isLoading = isAuthLoading,
+                                errorMessage = authError,
+                                onSignInWithEmail = { email, pass ->
+                                    isAuthLoading = true
+                                    authError = null
+                                    lifecycleScope.launch {
+                                        viewModel.signInWithEmail(email, pass)
+                                        isAuthLoading = false
+                                        currentDestination = FamilyOSDestination.OVERVIEW
+                                    }
+                                },
+                                onRegisterWithEmail = { email, pass ->
+                                    isAuthLoading = true
+                                    authError = null
+                                    lifecycleScope.launch {
+                                        viewModel.registerWithEmail(email, pass)
+                                        isAuthLoading = false
+                                        currentDestination = FamilyOSDestination.OVERVIEW
+                                    }
+                                },
+                                onSignInWithGoogle = {
+                                    currentDestination = FamilyOSDestination.OVERVIEW
+                                },
+                                onSendPasswordReset = { email ->
+                                    lifecycleScope.launch {
+                                        viewModel.sendPasswordResetEmail(email)
+                                    }
+                                },
+                                onSendEmailVerification = {
+                                    lifecycleScope.launch {
+                                        viewModel.sendEmailVerification()
+                                    }
+                                },
+                                onContinueOffline = {
+                                    currentDestination = FamilyOSDestination.OVERVIEW
                                 }
                             )
                         }
