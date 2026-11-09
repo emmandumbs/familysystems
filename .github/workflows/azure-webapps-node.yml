@@ -47,3 +47,4 @@ jobs:
           npx tsx tests/stage-4-ai-and-intelligence.test.ts
           npx tsx tests/stage-5-compliance-audit.test.ts
           npx tsx tests/postgres-scoped-isolation.test.ts
+          npx tsx tests/auth-async-token-verification.test.ts

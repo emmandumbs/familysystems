@@ -110,3 +110,34 @@ interface AuditEventDao {
     @Insert
     suspend fun logEvent(event: AuditEventEntity)
 }
+
+@Dao
+interface AuthSessionDao {
+    @Query("SELECT * FROM auth_sessions WHERE user_account_id = :userAccountId ORDER BY last_active_at DESC, created_at DESC")
+    fun observeSessionsForUser(userAccountId: String): Flow<List<AuthSessionEntity>>
+
+    @Query("SELECT * FROM auth_sessions WHERE user_account_id = :userAccountId AND is_revoked = 0 AND expires_at > :nowSec")
+    suspend fun getActiveSessionsForUser(userAccountId: String, nowSec: Long = System.currentTimeMillis() / 1000): List<AuthSessionEntity>
+
+    @Query("SELECT * FROM auth_sessions WHERE id = :sessionId LIMIT 1")
+    suspend fun getSessionById(sessionId: String): AuthSessionEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateSession(session: AuthSessionEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateSessions(sessions: List<AuthSessionEntity>)
+
+    @Query("UPDATE auth_sessions SET is_revoked = 1, revoked_at = :revokedAt WHERE id = :sessionId")
+    suspend fun markSessionRevoked(sessionId: String, revokedAt: Long = System.currentTimeMillis())
+
+    @Query("UPDATE auth_sessions SET is_revoked = 1, revoked_at = :revokedAt WHERE user_account_id = :userAccountId AND id != :exceptSessionId")
+    suspend fun markOtherSessionsRevoked(userAccountId: String, exceptSessionId: String, revokedAt: Long = System.currentTimeMillis())
+
+    @Query("DELETE FROM auth_sessions WHERE is_revoked = 1 OR expires_at < :nowSec")
+    suspend fun purgeRevokedSessions(nowSec: Long = System.currentTimeMillis() / 1000)
+
+    @Query("DELETE FROM auth_sessions")
+    suspend fun clearLocalSessions()
+}
+

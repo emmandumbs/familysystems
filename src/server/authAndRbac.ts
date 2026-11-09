@@ -4,6 +4,7 @@ import path from 'path';
 import https from 'https';
 import type { Request, Response, NextFunction } from 'express';
 import firebaseConfig from '../../firebase-applet-config.json';
+import { verifyFirebaseIdTokenAsync } from './firebaseAdminVerifier';
 import type {
   AuthoritativeFamilyMember,
   AuthoritativeFamilyRelationship,
@@ -143,8 +144,18 @@ const REVOCATIONS_FILE = path.join(DATA_DIR, 'auth-revocations.json');
 
 export interface AuthSessionRecord {
   sessionIdentifier: string; // jti
+  id?: string;
   tokenHash: string; // sha256 of raw token
   userAccountId: string;
+  firebaseUid?: string;
+  familyId?: string;
+  deviceName?: string;
+  platform?: string;
+  userAgent?: string;
+  userAgentHash?: string;
+  ipHash?: string;
+  tokenIssuedAt?: number;
+  lastActiveAt?: number;
   createdAtSec: number;
   expiresAtSec: number;
   isRevoked: boolean;
@@ -333,20 +344,52 @@ export function clearRevokedSessionsForTest(): void {
 // ============================================================================
 export async function recordAuthSessionPg(dbClientOrPool: any, record: AuthSessionRecord): Promise<void> {
   const tokenHash = record.tokenHash || crypto.createHash('sha256').update(record.sessionIdentifier).digest('hex');
-  await dbClientOrPool.query(
-    `INSERT INTO auth_sessions (session_id, user_account_id, token_hash, created_at, expires_at, is_revoked, device_info)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     ON CONFLICT (session_id) DO UPDATE SET is_revoked = EXCLUDED.is_revoked, revoked_at = EXCLUDED.revoked_at`,
-    [
-      record.sessionIdentifier,
-      record.userAccountId,
-      tokenHash,
-      record.createdAtSec,
-      record.expiresAtSec,
-      record.isRevoked || false,
-      record.deviceInfo || 'Standard Session',
-    ]
-  );
+  const sessionId = record.id || record.sessionIdentifier;
+  const nowSec = Math.floor(Date.now() / 1000);
+  try {
+    await dbClientOrPool.query(
+      `INSERT INTO auth_sessions (
+         id, session_id, user_account_id, firebase_uid, family_id, device_name,
+         platform, user_agent_hash, token_issued_at, expires_at, last_active_at,
+         is_revoked, created_at, token_hash, device_info
+       ) VALUES ($1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $5)
+       ON CONFLICT (id) DO UPDATE SET
+         last_active_at = EXCLUDED.last_active_at,
+         is_revoked = EXCLUDED.is_revoked,
+         revoked_at = EXCLUDED.revoked_at`,
+      [
+        sessionId,
+        record.userAccountId,
+        record.firebaseUid || record.userAccountId,
+        record.familyId || null,
+        record.deviceName || record.deviceInfo || 'Standard Session',
+        record.platform || 'Web',
+        record.userAgentHash || null,
+        record.tokenIssuedAt || record.createdAtSec,
+        record.expiresAtSec,
+        record.lastActiveAt || nowSec,
+        record.isRevoked || false,
+        record.createdAtSec,
+        tokenHash,
+      ]
+    );
+  } catch (err: any) {
+    // If table has only legacy columns without id or firebase_uid:
+    await dbClientOrPool.query(
+      `INSERT INTO auth_sessions (session_id, user_account_id, token_hash, created_at, expires_at, is_revoked, device_info)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (session_id) DO UPDATE SET is_revoked = EXCLUDED.is_revoked, revoked_at = EXCLUDED.revoked_at`,
+      [
+        sessionId,
+        record.userAccountId,
+        tokenHash,
+        record.createdAtSec,
+        record.expiresAtSec,
+        record.isRevoked || false,
+        record.deviceName || record.deviceInfo || 'Standard Session',
+      ]
+    );
+  }
 }
 
 export async function isSessionRevokedPg(
@@ -355,7 +398,7 @@ export async function isSessionRevokedPg(
 ): Promise<boolean> {
   const tokenHash = crypto.createHash('sha256').update(params.rawToken).digest('hex');
   const sessionRes = await dbClientOrPool.query(
-    `SELECT is_revoked FROM auth_sessions WHERE session_id = $1 OR token_hash = $2`,
+    `SELECT is_revoked FROM auth_sessions WHERE session_id = $1 OR id = $1 OR token_hash = $2`,
     [params.jti || params.rawToken, tokenHash]
   );
   if (sessionRes.rows.length > 0 && sessionRes.rows[0].is_revoked) {
@@ -385,7 +428,7 @@ export async function revokeSessionTokenPg(
   const nowSec = Math.floor(Date.now() / 1000);
   await dbClientOrPool.query(
     `UPDATE auth_sessions SET is_revoked = TRUE, revoked_at = $1, revoked_reason = $2
-     WHERE session_id = $3 OR token_hash = $3 OR token_hash = $4`,
+     WHERE id = $3 OR session_id = $3 OR token_hash = $3 OR token_hash = $4`,
     [nowSec, reason, tokenOrJti, tokenHash]
   );
 }
@@ -404,6 +447,116 @@ export async function revokeAllSessionsForUserPg(
     `UPDATE user_accounts SET revoked_before_sec = $1 WHERE id = $2`,
     [revokedAtSec, userAccountId]
   );
+}
+
+export async function listAuthSessionsForUserUnified(
+  userAccountId: string,
+  env: NodeJS.ProcessEnv = process.env,
+  dbPool?: any
+): Promise<AuthSessionRecord[]> {
+  syncRevocationsIfModifiedExternally();
+  const storage = evaluateStorageAvailability(env);
+  if (storage.mode === 'postgres') {
+    const pool = dbPool || getPostgresPool(env);
+    if (pool && isPostgresConnectionVerified()) {
+      try {
+        const res = await pool.query(
+          `SELECT id, session_id, user_account_id, firebase_uid, family_id, device_name, platform,
+                  user_agent_hash, token_issued_at, expires_at, last_active_at, is_revoked, revoked_at, created_at
+           FROM auth_sessions
+           WHERE user_account_id = $1
+           ORDER BY last_active_at DESC, created_at DESC`,
+          [userAccountId]
+        );
+        return res.rows.map((r: any) => ({
+          sessionIdentifier: r.id || r.session_id,
+          id: r.id || r.session_id,
+          tokenHash: '',
+          userAccountId: r.user_account_id,
+          firebaseUid: r.firebase_uid,
+          familyId: r.family_id,
+          deviceName: r.device_name || 'Standard Device',
+          platform: r.platform || 'Web',
+          userAgentHash: r.user_agent_hash,
+          tokenIssuedAt: Number(r.token_issued_at || r.created_at),
+          expiresAtSec: Number(r.expires_at),
+          lastActiveAt: Number(r.last_active_at || r.created_at),
+          createdAtSec: Number(r.created_at),
+          isRevoked: Boolean(r.is_revoked),
+          revokedAtSec: r.revoked_at ? Number(r.revoked_at) : undefined,
+        }));
+      } catch {
+        // Fall back to memory if query failed
+      }
+    }
+  }
+
+  // Memory fallback
+  const sessions: AuthSessionRecord[] = [];
+  for (const sess of trackedAuthSessions.values()) {
+    if (sess.userAccountId === userAccountId) {
+      sessions.push(sess);
+    }
+  }
+  return sessions.sort((a, b) => (b.lastActiveAt || b.createdAtSec) - (a.lastActiveAt || a.createdAtSec));
+}
+
+export async function revokeSingleSessionUnified(
+  sessionId: string,
+  reason = 'USER_REVOKED',
+  env: NodeJS.ProcessEnv = process.env,
+  dbPool?: any
+): Promise<boolean> {
+  revokeSessionToken(sessionId, reason);
+  const storage = evaluateStorageAvailability(env);
+  if (storage.mode === 'postgres') {
+    const pool = dbPool || getPostgresPool(env);
+    if (pool && isPostgresConnectionVerified()) {
+      await revokeSessionTokenPg(pool, sessionId, reason);
+    }
+  }
+  return true;
+}
+
+export async function revokeOtherSessionsForUserUnified(
+  userAccountId: string,
+  currentSessionId: string,
+  reason = 'REVOKE_OTHER_SESSIONS',
+  env: NodeJS.ProcessEnv = process.env,
+  dbPool?: any
+): Promise<number> {
+  syncRevocationsIfModifiedExternally();
+  let count = 0;
+  for (const [id, sess] of trackedAuthSessions.entries()) {
+    if (sess.userAccountId === userAccountId && id !== currentSessionId && !sess.isRevoked) {
+      sess.isRevoked = true;
+      sess.revokedAtSec = Math.floor(Date.now() / 1000);
+      sess.revokedReason = reason;
+      revokedTokenJtis.add(id);
+      count++;
+    }
+  }
+  saveRevocationsToDisk();
+
+  const storage = evaluateStorageAvailability(env);
+  if (storage.mode === 'postgres') {
+    const pool = dbPool || getPostgresPool(env);
+    if (pool && isPostgresConnectionVerified()) {
+      const nowSec = Math.floor(Date.now() / 1000);
+      try {
+        const res = await pool.query(
+          `UPDATE auth_sessions
+           SET is_revoked = TRUE, revoked_at = $1, revoked_reason = $2
+           WHERE user_account_id = $3 AND (id <> $4 OR id IS NULL) AND session_id <> $4 AND is_revoked = FALSE`,
+          [nowSec, reason, userAccountId, currentSessionId]
+        );
+        count = Math.max(count, res.rowCount || 0);
+      } catch {
+        // Fallback already updated in memory
+      }
+    }
+  }
+  return count;
 }
 
 export async function cleanupExpiredAuthSessionsPg(
@@ -645,9 +798,38 @@ export async function verifyBearerTokenAsync(
 ): Promise<VerifiedActorContext | null> {
   let verified = verifyBearerToken(token, store, env);
   if (!verified && !token.startsWith('fos_v1.') && token.split('.').length === 3) {
-    verified = await verifyFirebaseJwtCryptographicallyAsync(token, store);
+    const adminDecoded = await verifyFirebaseIdTokenAsync(token);
+    if (adminDecoded) {
+      verified = {
+        userAccountId: adminDecoded.uid,
+        email: adminDecoded.email,
+        displayName: adminDecoded.displayName || adminDecoded.email || adminDecoded.uid,
+        authMethod: 'FIREBASE_ID_TOKEN',
+        tokenJti: adminDecoded.jti,
+        emailVerified: adminDecoded.email_verified,
+      };
+    } else {
+      verified = await verifyFirebaseJwtCryptographicallyAsync(token, store);
+    }
   }
   if (!verified) return null;
+
+  // Check in-memory/disk session revocation
+  if (
+    isSessionRevoked({
+      rawToken: token,
+      jti: verified.tokenJti,
+      userAccountId: verified.userAccountId,
+    })
+  ) {
+    return null;
+  }
+
+  // Check account deletion status (AUTH-07)
+  const deletedAccountIds: string[] = (store as any).deletedUserAccountIds || [];
+  if (deletedAccountIds.includes(verified.userAccountId)) {
+    return null;
+  }
 
   const storage = evaluateStorageAvailability(env);
   if (storage.mode === 'postgres') {

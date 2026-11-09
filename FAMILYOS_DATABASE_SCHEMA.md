@@ -1,8 +1,8 @@
 # FAMILYOS — DATABASE SCHEMA ARCHITECTURE
-**Version**: 6.0.0 (Master Stage 5 Hardening & Parity — 57 Android Room Entities + Durable Backend Store v3.4.0)  
+**Version**: 6.1.0 (Master Stage 5 Hardening & Parity — 58 Android Room Entities + Durable Backend Store v3.4.1)  
 **Database Engine**: Room (SQLite 3.39+ with FTS4 and SQLCipher AES-256) & Atomic Cross-Process Backend Store (`data/familyos-shared-store.json`)  
 **ORM / Data Types**: Pure Kotlin Data Entities / Signed 64-Bit `BigInt` + `*Decimal` Strings, Zero Floating-Point for Currency  
-**Active Schema Version**: Room Database `version = 9` with `MIGRATION_1_2` through `MIGRATION_8_9`  
+**Active Schema Version**: Room Database `version = 10` with `MIGRATION_1_2` through `MIGRATION_9_10`  
 
 ---
 

@@ -318,3 +318,44 @@ data class AuditEventEntity(
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis()
 )
+
+/**
+ * 9. AuthSessionEntity
+ * Relational device session tracking and local session cache.
+ * Enables offline validation and local purge upon remote revocation.
+ */
+@Entity(
+    tableName = "auth_sessions",
+    indices = [
+        Index(value = ["user_account_id", "is_revoked"]),
+        Index(value = ["firebase_uid"])
+    ]
+)
+data class AuthSessionEntity(
+    @PrimaryKey
+    val id: String,
+    @ColumnInfo(name = "user_account_id")
+    val userAccountId: String,
+    @ColumnInfo(name = "firebase_uid")
+    val firebaseUid: String? = null,
+    @ColumnInfo(name = "family_id")
+    val familyId: String? = null,
+    @ColumnInfo(name = "device_name")
+    val deviceName: String? = null,
+    val platform: String? = null,
+    @ColumnInfo(name = "user_agent_hash")
+    val userAgentHash: String? = null,
+    @ColumnInfo(name = "token_issued_at")
+    val tokenIssuedAt: Long? = null,
+    @ColumnInfo(name = "expires_at")
+    val expiresAt: Long,
+    @ColumnInfo(name = "last_active_at")
+    val lastActiveAt: Long? = null,
+    @ColumnInfo(name = "is_revoked")
+    val isRevoked: Boolean = false,
+    @ColumnInfo(name = "revoked_at")
+    val revokedAt: Long? = null,
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long = System.currentTimeMillis()
+)
+

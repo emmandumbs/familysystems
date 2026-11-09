@@ -22,6 +22,7 @@ import {
   MemberProfileCompletionRecord,
 } from './SingleFamilyOnboardingSystem';
 import { syncDomainRecordToDatabase, auth, signInWithGooglePopup, signOutFirebase } from '../firebase';
+import { ActiveSessionsManager } from './auth/ActiveSessionsManager';
 
 export interface UserProfilePageProps {
   selectedRole: string;
@@ -1120,6 +1121,13 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({
             </div>
           </form>
         </div>
+
+        {/* Active Device Sessions Manager */}
+        {sessionToken && (
+          <div className="mt-8">
+            <ActiveSessionsManager sessionToken={sessionToken} />
+          </div>
+        )}
 
         {/* Danger Zone: GDPR Account Deletion */}
         <div className="mt-8 bg-white rounded-3xl border border-red-200 p-8 shadow-sm">

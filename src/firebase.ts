@@ -1,5 +1,16 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, type User } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  sendEmailVerification as sendFirebaseEmailVerification,
+  onAuthStateChanged,
+  type User,
+} from 'firebase/auth';
 import {
   getFirestore,
   initializeFirestore,
@@ -18,6 +29,24 @@ setLogLevel('error');
 
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
+
+export async function signInWithEmail(email: string, pass: string) {
+  return signInWithEmailAndPassword(auth, email.trim(), pass);
+}
+
+export async function registerWithEmail(email: string, pass: string) {
+  return createUserWithEmailAndPassword(auth, email.trim(), pass);
+}
+
+export async function sendPasswordReset(email: string) {
+  return sendPasswordResetEmail(auth, email.trim());
+}
+
+export async function sendEmailVerification(user?: User) {
+  const currentUser = user || auth.currentUser;
+  if (!currentUser) throw new Error('No active user to send verification email.');
+  return sendFirebaseEmailVerification(currentUser);
+}
 
 function createPersistentFirestore(): Firestore {
   try {

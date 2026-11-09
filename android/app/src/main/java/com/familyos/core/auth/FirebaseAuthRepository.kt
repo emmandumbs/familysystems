@@ -236,4 +236,42 @@ class FirebaseAuthRepositoryImpl(
             Result.failure(e)
         }
     }
+
+    override suspend fun getFreshIdToken(forceRefresh: Boolean): Result<String> = withContext(ioDispatcher) {
+        val user = firebaseAuth?.currentUser ?: return@withContext Result.failure(
+            IllegalStateException("No authenticated user session.")
+        )
+        try {
+            val tokenResult = user.getIdToken(forceRefresh).await()
+            val token = tokenResult.token ?: throw IllegalStateException("Firebase returned null ID token.")
+            Result.success(token)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> = withContext(ioDispatcher) {
+        val auth = firebaseAuth ?: return@withContext Result.failure(
+            IllegalStateException("Firebase Auth is not configured. Please supply google-services.json.")
+        )
+        try {
+            auth.sendPasswordResetEmail(email.trim()).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteAccountCredentials(): Result<Unit> = withContext(ioDispatcher) {
+        val user = firebaseAuth?.currentUser ?: return@withContext Result.failure(
+            IllegalStateException("No authenticated user session to delete.")
+        )
+        try {
+            user.delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
+

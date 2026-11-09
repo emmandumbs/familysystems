@@ -8,8 +8,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
- * FamilyOS Core Room Database (Version 9)
- * Contains 57 entities across Stage 1–5 (52 relational `@Entity` tables + 5 `@Fts4` full-text search virtual tables).
+ * FamilyOS Core Room Database (Version 10)
+ * Contains 58 entities across Stage 1–5 (53 relational `@Entity` tables + 5 `@Fts4` full-text search virtual tables).
  */
 @Database(
     entities = [
@@ -22,6 +22,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         GuardianRelationshipEntity::class,
         SyncQueueEntity::class,
         AuditEventEntity::class,
+        AuthSessionEntity::class,
         
         // Stage 2 Family & Household Entities
         FamilyRelationshipEntity::class,
@@ -86,7 +87,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         HomeAssetFtsEntity::class,
         FamilyTraditionFtsEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = true
 )
 abstract class FamilyOSDatabase : RoomDatabase() {
@@ -97,6 +98,7 @@ abstract class FamilyOSDatabase : RoomDatabase() {
     abstract fun guardianRelationshipDao(): GuardianRelationshipDao
     abstract fun syncQueueDao(): SyncQueueDao
     abstract fun auditEventDao(): AuditEventDao
+    abstract fun authSessionDao(): AuthSessionDao
 
     // Stage 2 DAOs
     abstract fun familyRelationshipDao(): FamilyRelationshipDao
@@ -1180,6 +1182,36 @@ abstract class FamilyOSDatabase : RoomDatabase() {
         }
 
         /**
+         * Safe, non-destructive migration from v9 to v10:
+         * Adds `auth_sessions` table with indexes on (user_account_id, is_revoked) and (firebase_uid)
+         * for offline session caching, remote revocation enforcement, and device tracking.
+         */
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `auth_sessions` (
+                        `id` TEXT NOT NULL,
+                        `user_account_id` TEXT NOT NULL,
+                        `firebase_uid` TEXT,
+                        `family_id` TEXT,
+                        `device_name` TEXT,
+                        `platform` TEXT,
+                        `user_agent_hash` TEXT,
+                        `token_issued_at` INTEGER,
+                        `expires_at` INTEGER NOT NULL,
+                        `last_active_at` INTEGER,
+                        `is_revoked` INTEGER NOT NULL,
+                        `revoked_at` INTEGER,
+                        `created_at` INTEGER NOT NULL,
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_auth_sessions_user_account_id_is_revoked` ON `auth_sessions` (`user_account_id`, `is_revoked`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_auth_sessions_firebase_uid` ON `auth_sessions` (`firebase_uid`)")
+            }
+        }
+
+        /**
          * Shared RoomDatabase.Callback enforcing the one-active-family-per-account invariant
          * via SQLite triggers across both production (`getInstance`) and test (`createInMemory`) databases.
          */
@@ -1232,7 +1264,8 @@ abstract class FamilyOSDatabase : RoomDatabase() {
                         MIGRATION_5_6,
                         MIGRATION_6_7,
                         MIGRATION_7_8,
-                        MIGRATION_8_9
+                        MIGRATION_8_9,
+                        MIGRATION_9_10
                     )
                     .addCallback(ONE_ACTIVE_FAMILY_TRIGGER_CALLBACK)
 

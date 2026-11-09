@@ -39,6 +39,9 @@ interface AuthRepository {
     suspend fun getCurrentUser(): UserAccount?
     suspend fun isEmailVerified(): Boolean
     suspend fun sendEmailVerification(): Result<Unit>
+    suspend fun getFreshIdToken(forceRefresh: Boolean = false): Result<String>
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
+    suspend fun deleteAccountCredentials(): Result<Unit>
 }
 
 interface SyncRepository {

@@ -42,17 +42,28 @@ import {
   isTestHarnessRegistrationAllowed,
   issueSignedSessionToken,
   issueSignedSessionTokenAsync,
+  listAuthSessionsForUserUnified,
+  recordAuthSession,
+  recordAuthSessionPg,
+  requireEmailVerified,
   resolveServerMembership,
   revokeAllSessionsForUser,
   revokeAllSessionsForUserUnified,
+  revokeOtherSessionsForUserUnified,
   revokeSessionToken,
   revokeSessionTokenUnified,
+  revokeSingleSessionUnified,
   sanitizeMemberForCaller,
   validateProductionAuthConfig,
   validateRelationshipGraph,
   verifyBearerToken,
   verifyBearerTokenAsync,
+  type AuthSessionRecord,
 } from './src/server/authAndRbac';
+import {
+  revokeFirebaseUserRefreshTokens,
+  verifyFirebaseIdTokenAsync,
+} from './src/server/firebaseAdminVerifier';
 import {
   mirrorEntityToFirestore,
   mirrorTransactionToFirestore,
@@ -92,6 +103,7 @@ import {
   evaluateStorageAvailability,
   getPostgresPool,
   initializePostgresBackendIfActive,
+  isPostgresConnectionVerified,
   loadStoreFromPostgres,
   persistStoreToPostgresAcid,
 } from './src/server/postgresMigrationAndBackup';
@@ -583,8 +595,204 @@ export async function createApp() {
     });
   });
 
+  // 0. Asynchronous Firebase ID Token Session Sync Endpoint
+  // Exchanges a verified Firebase ID token for an authoritative auth_sessions record with device tracking
+  app.post('/api/v1/auth/session/sync', async (req, res) => {
+    const { firebaseIdToken, deviceName, platform, userAgent } = req.body || {};
+    const authHeader = req.headers.authorization || '';
+    const bearerCandidate = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+    const candidateIdToken =
+      typeof firebaseIdToken === 'string' && firebaseIdToken.trim().length > 0
+        ? firebaseIdToken.trim()
+        : bearerCandidate;
+
+    if (!candidateIdToken) {
+      res.status(400).json({
+        error: 'INVALID_AUTH_REQUEST',
+        message: 'A valid firebaseIdToken or Authorization Bearer header is required.',
+      });
+      return;
+    }
+
+    const verified = await verifyFirebaseIdTokenAsync(candidateIdToken);
+    if (!verified) {
+      res.status(401).json({
+        error: 'INVALID_FIREBASE_TOKEN',
+        message: 'Cryptographic Firebase ID token verification failed.',
+      });
+      return;
+    }
+
+    const store = loadStore();
+
+    // Check account deletion status (AUTH-07)
+    const deletedAccountIds: string[] = (store as any).deletedUserAccountIds || [];
+    if (deletedAccountIds.includes(verified.uid)) {
+      res.status(401).json({
+        error: 'ACCOUNT_DELETED',
+        message: 'This account has been deleted.',
+      });
+      return;
+    }
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    const activeMembership = findActiveMembershipForUser(store, verified.uid, verified.email);
+    const familyId = activeMembership?.familyId || null;
+
+    const rawUa =
+      typeof userAgent === 'string' && userAgent.length > 0
+        ? userAgent
+        : String(req.headers['user-agent'] || 'unknown');
+    const userAgentHash = crypto.createHash('sha256').update(rawUa).digest('hex').slice(0, 16);
+    const rawIp = String(req.ip || req.socket.remoteAddress || 'unknown');
+    const ipHash = crypto.createHash('sha256').update(rawIp).digest('hex').slice(0, 16);
+
+    const sessionId = verified.jti || `sess_${nowSec}_${crypto.randomBytes(8).toString('hex')}`;
+    const resolvedDeviceName = deviceName || (platform === 'Android' ? 'Android Device' : 'Web Browser');
+    const resolvedPlatform = platform || 'Web';
+
+    const sessionRecord: AuthSessionRecord = {
+      sessionIdentifier: sessionId,
+      id: sessionId,
+      tokenHash: crypto.createHash('sha256').update(candidateIdToken).digest('hex'),
+      userAccountId: verified.uid,
+      firebaseUid: verified.uid,
+      familyId: familyId || undefined,
+      deviceName: resolvedDeviceName,
+      platform: resolvedPlatform,
+      userAgent: rawUa,
+      userAgentHash,
+      ipHash,
+      tokenIssuedAt: verified.iat,
+      expiresAtSec: verified.exp,
+      lastActiveAt: nowSec,
+      createdAtSec: nowSec,
+      isRevoked: false,
+      deviceInfo: `${resolvedDeviceName} (${resolvedPlatform})`,
+    };
+
+    recordAuthSession(sessionRecord);
+
+    const storage = evaluateStorageAvailability(process.env);
+    if (storage.mode === 'postgres') {
+      const pool = getPostgresPool(process.env);
+      if (pool && isPostgresConnectionVerified()) {
+        await recordAuthSessionPg(pool, sessionRecord);
+      }
+    }
+
+    let token: string;
+    try {
+      token = await issueSignedSessionTokenAsync({
+        userAccountId: verified.uid,
+        email: verified.email,
+        displayName: verified.displayName || verified.email,
+        emailVerified: verified.email_verified,
+        deviceInfo: sessionRecord.deviceInfo,
+      });
+    } catch (err: any) {
+      if (err?.message === 'POSTGRES_UNAVAILABLE_NO_JSON_FALLBACK') {
+        res.status(503).json({
+          error: 'POSTGRES_UNAVAILABLE_NO_JSON_FALLBACK',
+          message: 'PostgreSQL storage mode is active but database pool is unconfigured or unavailable.',
+        });
+        return;
+      }
+      throw err;
+    }
+
+    const memberships = (store.memberships || []).filter((m) => m.userAccountId === verified.uid);
+
+    res.status(200).json({
+      token,
+      user: {
+        id: verified.uid,
+        email: verified.email,
+        displayName: verified.displayName || verified.email,
+        emailVerified: verified.email_verified,
+      },
+      membership: activeMembership || memberships[0] || null,
+      session: {
+        id: sessionId,
+        deviceName: resolvedDeviceName,
+        platform: resolvedPlatform,
+        lastActiveAt: nowSec,
+        expiresAt: verified.exp,
+        isRevoked: false,
+      },
+      emailVerified: verified.email_verified,
+    });
+  });
+
   // Zero-trust authentication middleware for all protected /api/v1/* endpoints below
   const requireAuth = createAuthMiddleware(() => loadStore());
+
+  // 0A-1. List User Sessions
+  app.get('/api/v1/auth/sessions', requireAuth, async (req, res) => {
+    const actor = req.actor!;
+    const sessions = await listAuthSessionsForUserUnified(actor.userAccountId, process.env);
+    res.status(200).json({
+      sessions: sessions.map((s) => ({
+        id: s.id || s.sessionIdentifier,
+        deviceName: s.deviceName || s.deviceInfo || 'Authorized Device',
+        platform: s.platform || 'Web',
+        lastActiveAt: s.lastActiveAt || s.createdAtSec,
+        createdAt: s.createdAtSec,
+        expiresAt: s.expiresAtSec,
+        isRevoked: s.isRevoked,
+        revokedAt: s.revokedAtSec,
+        isCurrent: (s.id || s.sessionIdentifier) === actor.tokenJti,
+      })),
+    });
+  });
+
+  // 0A-2. Revoke a Specific Session
+  app.delete('/api/v1/auth/sessions/:sessionId', requireAuth, async (req, res) => {
+    const actor = req.actor!;
+    const { sessionId } = req.params;
+    await revokeSingleSessionUnified(sessionId, 'USER_REVOKED', process.env);
+    res.status(200).json({
+      revoked: true,
+      sessionId,
+      userAccountId: actor.userAccountId,
+    });
+  });
+
+  // 0A-3. Revoke All Other Sessions for Current User
+  app.post('/api/v1/auth/sessions/revoke-others', requireAuth, async (req, res) => {
+    const actor = req.actor!;
+    const currentSessionId = actor.tokenJti || '';
+    const revokedCount = await revokeOtherSessionsForUserUnified(
+      actor.userAccountId,
+      currentSessionId,
+      'REVOKE_OTHER_SESSIONS',
+      process.env
+    );
+
+    // If Firebase Admin is available, revoke refresh tokens
+    await revokeFirebaseUserRefreshTokens(actor.userAccountId);
+
+    await withAtomicStoreTransaction(async (store) => {
+      const activeMembership = findActiveMembershipForUser(store, actor.userAccountId, actor.email);
+      const auditEvent = {
+        id: `aud-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,
+        familyId: activeMembership?.familyId || 'fam-1',
+        actorUserId: actor.userAccountId,
+        actorRole: activeMembership?.role || 'OWNER',
+        actionType: 'ALL_OTHER_SESSIONS_REVOKED',
+        summary: `Revoked ${revokedCount} other device sessions for user ${actor.email || actor.userAccountId}`,
+        createdAt: Date.now(),
+      };
+      store.auditEvents = store.auditEvents || [];
+      store.auditEvents.push(auditEvent as any);
+    });
+
+    res.status(200).json({
+      revokedOthers: true,
+      revokedCount,
+      currentSessionId,
+    });
+  });
 
   // 0A. Session Revocation Endpoint (Sign-Out & Token Revocation)
   app.post('/api/v1/auth/revoke', requireAuth, async (req, res) => {
@@ -671,7 +879,13 @@ export async function createApp() {
         }
       }
 
-      // 5. Append anonymized audit record (GDPR compliance without retaining deleted PII)
+      // 5. Track deleted user account ID to reject future auth exchanges
+      (store as any).deletedUserAccountIds = (store as any).deletedUserAccountIds || [];
+      if (!(store as any).deletedUserAccountIds.includes(actor.userAccountId)) {
+        (store as any).deletedUserAccountIds.push(actor.userAccountId);
+      }
+
+      // 6. Append anonymized audit record (GDPR compliance without retaining deleted PII)
       store.auditEvents.unshift({
         id: `aud-${now}`,
         familyId: userMemberships[0]?.familyId || 'fam-1',
