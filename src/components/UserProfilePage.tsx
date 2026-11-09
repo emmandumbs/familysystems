@@ -21,7 +21,7 @@ import {
   saveProfileCompletionForRole,
   MemberProfileCompletionRecord,
 } from './SingleFamilyOnboardingSystem';
-import { syncDomainRecordToDatabase } from '../firebase';
+import { syncDomainRecordToDatabase, auth, signInWithGooglePopup, signOutFirebase } from '../firebase';
 
 export interface UserProfilePageProps {
   selectedRole: string;
@@ -772,7 +772,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({
               )}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-stone-200 space-y-2 text-left text-xs">
+            <div className="mt-4 pt-4 border-t border-stone-200 space-y-2.5 text-left text-xs">
               <div className="flex items-center space-x-2 text-stone-700">
                 <Mail className="w-3.5 h-3.5 text-[#173D35] shrink-0" />
                 <span className="truncate">{editForm.email}</span>
@@ -780,6 +780,53 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({
               <div className="flex items-center space-x-2 text-stone-700">
                 <Phone className="w-3.5 h-3.5 text-[#173D35] shrink-0" />
                 <span>{editForm.phone || 'Phone skipped (add on right)'}</span>
+              </div>
+              <div className="pt-2 border-t border-stone-200">
+                <div className="flex items-center justify-between text-[11px] mb-1.5">
+                  <span className="font-bold text-stone-700">Firebase Auth Status</span>
+                  {auth.currentUser ? (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold font-mono text-[10px]">
+                      Verified Google User
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 font-bold font-mono text-[10px]">
+                      Local Session
+                    </span>
+                  )}
+                </div>
+                {auth.currentUser ? (
+                  <p className="text-[11px] text-stone-600 truncate font-mono bg-stone-50 p-2 rounded-xl border border-stone-200">
+                    {auth.currentUser.email}
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const { idToken } = await signInWithGooglePopup();
+                        const res = await fetch('/api/v1/auth/session', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${idToken}`,
+                          },
+                          body: JSON.stringify({ firebaseIdToken: idToken }),
+                        });
+                        if (res.ok) {
+                          const data = await res.json();
+                          if (data.token && onRefreshWorkspace) {
+                            await onRefreshWorkspace();
+                          }
+                        }
+                      } catch {
+                        // User cancelled or closed popup
+                      }
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-[#173D35] hover:bg-emerald-950 text-white font-bold text-xs flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs transition-colors"
+                  >
+                    <span>🔐 Connect with Google</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

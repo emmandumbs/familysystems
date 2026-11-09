@@ -51,6 +51,7 @@ import {
   validateProductionAuthConfig,
   validateRelationshipGraph,
   verifyBearerToken,
+  verifyBearerTokenAsync,
 } from './src/server/authAndRbac';
 import {
   mirrorEntityToFirestore,
@@ -446,7 +447,7 @@ export async function createApp() {
     const store = loadStore();
 
     if (candidateIdToken.length > 0) {
-      const verified = verifyBearerToken(candidateIdToken, store);
+      const verified = await verifyBearerTokenAsync(candidateIdToken, store, process.env);
       if (!verified) {
         res.status(401).json({
           error: 'INVALID_FIREBASE_TOKEN',

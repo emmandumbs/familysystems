@@ -435,40 +435,63 @@ export function unregisterTrustedFirebasePublicKey(kid: string): void {
 }
 
 export function refreshGoogleSigningCertificatesBackground(): void {
+  void ensureGoogleSigningCertificatesLoaded().catch(() => {});
+}
+
+let certFetchPromise: Promise<boolean> | null = null;
+
+export async function ensureGoogleSigningCertificatesLoaded(force = false): Promise<boolean> {
   const now = Date.now();
-  if (now - lastCertFetchMs < 15 * 60 * 1000) return;
-  lastCertFetchMs = now;
-  try {
-    https
-      .get(GOOGLE_SECURETOKEN_CERTS_URL, (res) => {
-        if (res.statusCode !== 200) return;
-        let raw = '';
-        res.on('data', (chunk) => {
-          raw += chunk;
-        });
-        res.on('end', () => {
-          try {
-            const parsed = JSON.parse(raw) as Record<string, string>;
-            for (const [kid, certPem] of Object.entries(parsed)) {
-              if (typeof certPem === 'string' && certPem.includes('BEGIN CERTIFICATE')) {
-                trustedFirebasePublicKeys.set(kid, certPem);
-              }
-            }
-          } catch {
-            // Ignore malformed response
-          }
-        });
-      })
-      .on('error', () => {
-        // Offline / sandbox environment without external internet access
-      });
-  } catch {
-    // Ignore
+  if (!force && trustedFirebasePublicKeys.size > 0 && now - lastCertFetchMs < 15 * 60 * 1000) {
+    return true;
   }
+  if (certFetchPromise) {
+    return certFetchPromise;
+  }
+
+  certFetchPromise = new Promise<boolean>((resolve) => {
+    lastCertFetchMs = Date.now();
+    try {
+      https
+        .get(GOOGLE_SECURETOKEN_CERTS_URL, (res) => {
+          if (res.statusCode !== 200) {
+            certFetchPromise = null;
+            return resolve(trustedFirebasePublicKeys.size > 0);
+          }
+          let raw = '';
+          res.on('data', (chunk) => {
+            raw += chunk;
+          });
+          res.on('end', () => {
+            certFetchPromise = null;
+            try {
+              const parsed = JSON.parse(raw) as Record<string, string>;
+              for (const [kid, certPem] of Object.entries(parsed)) {
+                if (typeof certPem === 'string' && certPem.includes('BEGIN CERTIFICATE')) {
+                  trustedFirebasePublicKeys.set(kid, certPem);
+                }
+              }
+              resolve(trustedFirebasePublicKeys.size > 0);
+            } catch {
+              resolve(trustedFirebasePublicKeys.size > 0);
+            }
+          });
+        })
+        .on('error', () => {
+          certFetchPromise = null;
+          resolve(trustedFirebasePublicKeys.size > 0);
+        });
+    } catch {
+      certFetchPromise = null;
+      resolve(trustedFirebasePublicKeys.size > 0);
+    }
+  });
+
+  return certFetchPromise;
 }
 
 // Trigger initial non-blocking fetch of Google's X.509 signing certs
-refreshGoogleSigningCertificatesBackground();
+void ensureGoogleSigningCertificatesLoaded().catch(() => {});
 
 function timingSafeCompareStrings(a: string, b: string): boolean {
   const bufA = Buffer.from(a, 'utf-8');
@@ -591,13 +614,39 @@ export async function revokeAllSessionsForUserUnified(
   }
 }
 
+export async function verifyFirebaseJwtCryptographicallyAsync(
+  token: string,
+  store: SharedStore
+): Promise<VerifiedActorContext | null> {
+  const jwtParts = token.split('.');
+  if (jwtParts.length !== 3) return null;
+  const [headerB64] = jwtParts;
+  if (!headerB64) return null;
+
+  try {
+    const header = JSON.parse(Buffer.from(headerB64, 'base64url').toString('utf-8'));
+    if (header && header.alg === 'RS256' && typeof header.kid === 'string') {
+      if (!trustedFirebasePublicKeys.has(header.kid)) {
+        await ensureGoogleSigningCertificatesLoaded(true);
+      }
+    }
+  } catch {
+    // Ignore parse error; synchronous verifier will handle format validation
+  }
+
+  return verifyFirebaseJwtCryptographically(token, store);
+}
+
 export async function verifyBearerTokenAsync(
   token: string,
   store: SharedStore,
   env: NodeJS.ProcessEnv = process.env,
   dbPool?: any
 ): Promise<VerifiedActorContext | null> {
-  const verified = verifyBearerToken(token, store, env);
+  let verified = verifyBearerToken(token, store, env);
+  if (!verified && !token.startsWith('fos_v1.') && token.split('.').length === 3) {
+    verified = await verifyFirebaseJwtCryptographicallyAsync(token, store);
+  }
   if (!verified) return null;
 
   const storage = evaluateStorageAvailability(env);

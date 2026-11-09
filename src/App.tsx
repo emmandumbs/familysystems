@@ -27,7 +27,7 @@ import {
 import { DatabaseStudioCenter } from './components/DatabaseStudioCenter';
 import { GeneralSettingsPage } from './components/GeneralSettingsPage';
 import { FamilySettingsPage } from './components/FamilySettingsPage';
-import { signInWithGooglePopup, signOutFromFirebase } from './firebase';
+import { signInWithGooglePopup, signOutFromFirebase, subscribeToFirebaseAuth } from './firebase';
 import { purgeAllClientSessionCaches, IS_DEV_FIXTURE_MODE } from './utils/namespacedStorage';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { OfflineStatusHeader, OfflineBanner } from './components/OfflineStatusHeader';
@@ -418,6 +418,37 @@ export default function App() {
     setIsSignedOut(true);
   }, [sessionToken]);
 
+  const exchangeFirebaseTokenForSession = useCallback(
+    async (idToken: string) => {
+      const res = await fetch('/api/v1/auth/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ firebaseIdToken: idToken }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || err.error || 'Unable to verify Google ID token with server.');
+      }
+      const data = await res.json();
+      if (data.token) {
+        purgeAllClientSessionCaches();
+        setSessionToken(data.token);
+        setIsSignedOut(false);
+        if (data.actor?.displayName) {
+          setActorDisplayName(data.actor.displayName);
+        }
+        if (data.membership?.role) {
+          setSelectedRole(data.membership.role);
+        }
+        await fetchSharedWorkspace(data.token);
+      }
+    },
+    [fetchSharedWorkspace]
+  );
+
   const handleGoogleSignIn = useCallback(async () => {
     setAuthModalError(null);
     try {
@@ -426,31 +457,29 @@ export default function App() {
         setAuthModalError('Google Sign-In was cancelled or failed.');
         return;
       }
-      const { idToken } = result;
-      const res = await fetch('/api/v1/auth/session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({}),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        setAuthModalError(err.message || err.error || 'Unable to verify Google ID token with server.');
-        return;
-      }
-      const data = await res.json();
-      if (data.token) {
-        purgeAllClientSessionCaches();
-        setSessionToken(data.token);
-        setIsSignedOut(false);
-        await fetchSharedWorkspace(data.token);
-      }
+      await exchangeFirebaseTokenForSession(result.idToken);
     } catch (err: any) {
       setAuthModalError(err?.message || 'Google Sign-In failed.');
     }
-  }, [fetchSharedWorkspace]);
+  }, [exchangeFirebaseTokenForSession]);
+
+  // Subscribe to Firebase Authentication state for seamless session restoration on page reload
+  useEffect(() => {
+    if (isSignedOut) return;
+    const unsubscribe = subscribeToFirebaseAuth(async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const idToken = await firebaseUser.getIdToken();
+          if (idToken) {
+            await exchangeFirebaseTokenForSession(idToken);
+          }
+        } catch {
+          // Fall back to dev fixture / session restore
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [exchangeFirebaseTokenForSession, isSignedOut]);
 
   useEffect(() => {
     if (isSignedOut) return;
