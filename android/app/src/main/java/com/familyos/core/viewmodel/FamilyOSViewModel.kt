@@ -45,6 +45,8 @@ class FamilyOSViewModel(application: Application) : AndroidViewModel(application
     private val _currentActorMemberId = MutableStateFlow("mem-sarah")
     val currentActorMemberId: StateFlow<String> = _currentActorMemberId.asStateFlow()
 
+    private val _familyMembers = MutableStateFlow<List<FamilyMember>>(emptyList())
+
     private val _milestones = MutableStateFlow<List<ProjectMilestone>>(
         listOf(
             ProjectMilestone(

@@ -51,6 +51,14 @@ object FamilySecurityPolicy {
         return isGuardian
     }
 
+    fun canAccessChildMedicalRecords(
+        actorRole: FamilyRole,
+        isGuardian: Boolean
+    ): Boolean {
+        if (actorRole == FamilyRole.OWNER || actorRole == FamilyRole.ADMIN) return true
+        return isGuardian
+    }
+
     /**
      * Checks authorization for sensitive data operations.
      */

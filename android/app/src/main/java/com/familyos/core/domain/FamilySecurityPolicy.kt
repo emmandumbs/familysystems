@@ -17,6 +17,9 @@ object FamilySecurityPolicy {
     fun canAccessChildMedicalRecords(actorRole: FamilyRole, actorMemberId: String, childMemberId: String, isGuardian: Boolean): Boolean =
         SecurityPolicy.canAccessChildMedicalRecords(actorRole, actorMemberId, childMemberId, isGuardian)
 
+    fun canAccessChildMedicalRecords(actorRole: FamilyRole, isGuardian: Boolean): Boolean =
+        SecurityPolicy.canAccessChildMedicalRecords(actorRole, isGuardian)
+
     fun isSensitiveDataOperationAuthorized(
         actorRole: FamilyRole,
         actorMemberId: String,
