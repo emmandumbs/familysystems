@@ -48,6 +48,7 @@ import {
   PantryTaxonomyModal,
   formatEpochDate,
 } from './household/HouseholdModals';
+import type { ExportDocumentType } from './export/PrintableExportView';
 
 type SubTab = 'meals' | 'recipes' | 'pantry' | 'groceries' | 'chores' | 'wardrobe' | 'assets';
 
@@ -103,7 +104,8 @@ export const Stage2HouseholdExperience: React.FC<{
   selectedPersona?: string;
   activeSubPage?: string;
   onSelectSubPage?: (subId: string) => void;
-}> = ({ familyId, callerRole, sessionToken, selectedPersona, activeSubPage, onSelectSubPage }) => {
+  onOpenPrintDoc?: (docType: ExportDocumentType, recipeId?: string) => void;
+}> = ({ familyId, callerRole, sessionToken, selectedPersona, activeSubPage, onSelectSubPage, onOpenPrintDoc }) => {
   const effectiveRole = callerRole || selectedPersona || 'OWNER';
   const [subTab, setSubTab] = useState<SubTab>(() =>
     activeSubPage && ID_TO_SUB[activeSubPage] ? ID_TO_SUB[activeSubPage] : 'meals'
@@ -1505,12 +1507,21 @@ export const Stage2HouseholdExperience: React.FC<{
                         <button
                           type="button"
                           onClick={() => handleToggleRecipeFavorite(recipe)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-50"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-50 cursor-pointer"
                           title="Toggle favorite"
                         >
                           <Star
                             className={`w-4 h-4 ${recipe.isFavorite ? 'fill-amber-400 text-amber-500' : ''}`}
                           />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onOpenPrintDoc ? onOpenPrintDoc('RECIPE_CARD', recipe.id) : setScalerRecipe(recipe)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#C39A60] hover:bg-amber-50 transition-colors cursor-pointer"
+                          title="Print Recipe Card"
+                          aria-label="Print Recipe Card"
+                        >
+                          <Printer className="w-4 h-4 text-[#C39A60]" />
                         </button>
                         <button
                           type="button"
@@ -3641,6 +3652,7 @@ export const Stage2HouseholdExperience: React.FC<{
         onEdit={(r) => openEntityModal('RECIPE', 'EDIT', r)}
         onSyncIngredientsToGrocery={handleSyncRecipeIngredientsToGroceries}
         onPreviewAttachment={setPreviewAttachment}
+        onPrintRecipe={(rId) => onOpenPrintDoc?.('RECIPE_CARD', rId)}
       />
 
       <AssetServiceHistoryDrawer

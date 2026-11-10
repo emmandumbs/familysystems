@@ -38,6 +38,7 @@ import {
 import { HomeDashboardsExperience } from './HomeDashboardsExperience';
 import { ExtendedFamilyHeritageMap } from './ExtendedFamilyHeritageMap';
 import type { MainTabType } from './SidebarNavigation';
+import type { ExportDocumentType } from './export/PrintableExportView';
 
 export type Stage331WorkspaceData = any;
 
@@ -53,6 +54,7 @@ export interface Stage331Props {
   activeSubPage?: string;
   onSelectSubPage?: (subId: string) => void;
   onOpenOnboardingModal?: (step?: any, inviteToken?: string) => void;
+  onOpenPrintDoc?: (docType: ExportDocumentType, recipeId?: string) => void;
 }
 
 const HOME_DASHBOARD_SUBPAGES = new Set([
@@ -82,6 +84,7 @@ export const Stage331FamilyExperience: React.FC<Stage331Props> = ({
   onNavigateTab,
   activeSubPage = 'home_overview',
   onSelectSubPage,
+  onOpenPrintDoc,
 }) => {
   const familyId = workspaceData?.familyId || workspaceData?.workspace?.id || '';
   const callerRole = workspaceData?.callerMembership?.role || workspaceData?.actor?.role || 'OWNER';
@@ -1719,11 +1722,12 @@ export const Stage331FamilyExperience: React.FC<Stage331Props> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => window.print()}
-                  className="px-3.5 py-2 rounded-xl border border-stone-200 text-stone-700 text-xs font-semibold flex items-center gap-1.5 hover:bg-stone-50"
+                  onClick={() => onOpenPrintDoc ? onOpenPrintDoc('FAMILY_CONSTITUTION') : window.print()}
+                  className="p-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-[#C39A60] transition-colors cursor-pointer shadow-2xs"
+                  title="Print Family Constitution"
+                  aria-label="Print Family Constitution"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Print Charter</span>
+                  <Printer className="w-4 h-4 text-[#C39A60]" />
                 </button>
                 {canManage && (
                   <button

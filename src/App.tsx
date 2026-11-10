@@ -498,6 +498,12 @@ export default function App() {
   const currentAvatarUrl =
     PERSONA_AVATARS[selectedRole]?.avatar || PERSONA_AVATARS.OWNER.avatar;
 
+  const handleOpenPrintDoc = useCallback((docType: ExportDocumentType, recipeId?: string) => {
+    setPrintableDocType(docType);
+    setPrintableRecipeId(recipeId);
+    setPrintableModalOpen(true);
+  }, []);
+
   return (
     <div
       className="min-h-screen flex font-sans transition-colors duration-300"
@@ -739,25 +745,6 @@ export default function App() {
 
           {/* Header Controls: Offline Status, Install App, Notifications & User Avatar */}
           <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
-            {/* Master Stage 4 Printable Cards & Packets Trigger */}
-            <button
-              type="button"
-              onClick={() => {
-                setPrintableDocType(
-                  activeTab === 'people_relationships'
-                    ? 'FAMILY_CONSTITUTION'
-                    : 'EMERGENCY_CRISIS_PACKET'
-                );
-                setPrintableModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-stone-200 border border-white/15 text-xs font-semibold cursor-pointer transition-colors"
-              title="Print Recipe Card, Emergency Crisis Packet, or Family Constitution"
-            >
-              <Printer className="w-3.5 h-3.5 text-stone-300" />
-              <span className="hidden xl:inline">Print Docs</span>
-            </button>
-
-            {/* Offline Status & Outbox Replay Pill */}
             <OfflineStatusHeader />
 
             {/* In-App PWA Install Prompt Button */}
@@ -834,6 +821,7 @@ export default function App() {
                 syncRouteToUrl(activeTab, subId);
               }}
               onOpenOnboardingModal={handleOpenOnboardingModal}
+              onOpenPrintDoc={handleOpenPrintDoc}
             />
           )}
 
@@ -898,6 +886,7 @@ export default function App() {
               selectedPersona={selectedRole}
               activeSubPage={activeSubItemId}
               onSelectSubPage={(subId) => setActiveSubItemId(subId)}
+              onOpenPrintDoc={handleOpenPrintDoc}
             />
           )}
 
@@ -950,6 +939,7 @@ export default function App() {
               actorDisplayName={actorDisplayName}
               activeSubPage={activeSubItemId}
               onSelectSubPage={(subId) => setActiveSubItemId(subId)}
+              onOpenPrintDoc={handleOpenPrintDoc}
             />
           )}
 

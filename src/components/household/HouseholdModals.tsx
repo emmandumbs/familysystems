@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Circle,
   ChefHat,
+  Printer,
 } from 'lucide-react';
 import {
   HouseholdAttachment,
@@ -30,7 +31,8 @@ export const RecipeScalerDrawer: React.FC<{
   onEdit: (recipe: any) => void;
   onSyncIngredientsToGrocery: (recipe: any, scaleFactor: number) => Promise<void>;
   onPreviewAttachment: (att: HouseholdAttachment) => void;
-}> = ({ recipe, onClose, onEdit, onSyncIngredientsToGrocery, onPreviewAttachment }) => {
+  onPrintRecipe?: (recipeId: string) => void;
+}> = ({ recipe, onClose, onEdit, onSyncIngredientsToGrocery, onPreviewAttachment, onPrintRecipe }) => {
   const [targetServings, setTargetServings] = useState<number>(recipe?.servings || 4);
   const [checkedSteps, setCheckedSteps] = useState<Record<number, boolean>>({});
   const [syncing, setSyncing] = useState(false);
@@ -64,6 +66,15 @@ export const RecipeScalerDrawer: React.FC<{
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onPrintRecipe ? onPrintRecipe(recipe.id) : window.print()}
+              className="p-1.5 rounded-lg border border-slate-200 text-[#C39A60] hover:bg-amber-50 transition-colors cursor-pointer"
+              title="Print Recipe Card"
+              aria-label="Print Recipe Card"
+            >
+              <Printer className="w-4 h-4" />
+            </button>
             <button
               type="button"
               onClick={() => {

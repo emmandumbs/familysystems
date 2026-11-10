@@ -25,7 +25,9 @@ import {
   Paperclip,
   Eye,
   FolderLock,
+  Printer,
 } from 'lucide-react';
+import type { ExportDocumentType } from './export/PrintableExportView';
 import {
   auth,
   syncDomainRecordToDatabase,
@@ -496,6 +498,7 @@ export const LifeManagementCenter: React.FC<{
   members?: any[];
   activeSubPage?: string;
   onSelectSubPage?: (subId: string) => void;
+  onOpenPrintDoc?: (docType: ExportDocumentType, recipeId?: string) => void;
 }> = ({
   selectedRole,
   sessionToken = '',
@@ -504,6 +507,7 @@ export const LifeManagementCenter: React.FC<{
   actorMemberId = 'mem-1',
   activeSubPage,
   onSelectSubPage,
+  onOpenPrintDoc,
 }) => {
   const mapSubPageToTab = (sub?: string): LifeSubTab => {
     switch (sub) {
@@ -1583,9 +1587,20 @@ export const LifeManagementCenter: React.FC<{
               {/* Priority Emergency Contacts */}
               <div className="rounded-2xl p-5 bg-white border border-stone-200 shadow-xs space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-serif font-bold text-base text-stone-900">
-                    Priority Emergency Directory
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-serif font-bold text-base text-stone-900">
+                      Priority Emergency Directory
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => onOpenPrintDoc ? onOpenPrintDoc('EMERGENCY_CRISIS_PACKET') : window.print()}
+                      className="p-1 rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-100 text-[#C39A60] transition-colors cursor-pointer"
+                      title="Print Emergency Crisis Packet"
+                      aria-label="Print Emergency Crisis Packet"
+                    >
+                      <Printer className="w-4 h-4 text-[#C39A60]" />
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setActiveSubTab('contacts')}
@@ -2024,19 +2039,30 @@ export const LifeManagementCenter: React.FC<{
               </select>
             </div>
 
-            {canMutateShared && (
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
-                onClick={() => {
-                  setEditingContact(null);
-                  setContactModalOpen(true);
-                }}
-                className="px-4 py-2 rounded-xl bg-[#173D35] hover:bg-emerald-950 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 cursor-pointer"
+                onClick={() => onOpenPrintDoc ? onOpenPrintDoc('EMERGENCY_CRISIS_PACKET') : window.print()}
+                className="p-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-[#C39A60] shrink-0 cursor-pointer transition-colors shadow-2xs"
+                title="Print Emergency Crisis Packet"
+                aria-label="Print Emergency Crisis Packet"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Provider / Contact</span>
+                <Printer className="w-4 h-4 text-[#C39A60]" />
               </button>
-            )}
+              {canMutateShared && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingContact(null);
+                    setContactModalOpen(true);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#173D35] hover:bg-emerald-950 text-white text-xs font-semibold flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Provider / Contact</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
