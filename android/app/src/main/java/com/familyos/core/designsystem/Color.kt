@@ -50,4 +50,6 @@ val FamilyOSColors.SageMedium: Color get() = SageGreen
 val FamilyOSColors.SoftGoldDark: Color get() = SoftGold
 val FamilyOSColors.MutedCharcoal: Color get() = TextSecondary
 val FamilyOSColors.WarmIvoryDark: Color get() = SurfaceCardMuted
+val FamilyOSColors.Danger: Color get() = Alert
+val FamilyOSColors.SemanticAlert: Color get() = Alert
 

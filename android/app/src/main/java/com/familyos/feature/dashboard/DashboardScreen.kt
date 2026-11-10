@@ -53,8 +53,9 @@ fun DashboardScreen(
     recentAudits: List<AuditEventEntity> = emptyList(),
     onToggleTaskComplete: (String, Boolean) -> Unit = { _, _ -> },
     onToggleReminder: (String) -> Unit = {},
-    onUpdateIdentity: (String, String) -> Unit = { _, _ -> },
-    onPostAnnouncement: (String, String) -> Unit = { _, _ -> },
+    onUpdateIdentity: (String, String, String, String, List<String>) -> Unit = { _, _, _, _, _ -> },
+    onAddAnnouncement: (String, String) -> Unit = { _, _ -> },
+    onPostAnnouncement: (String, String) -> Unit = onAddAnnouncement,
     onQuickAction: (String) -> Unit = {}
 ) {
     var showIdentityEditor by remember { mutableStateOf(false) }
@@ -487,7 +488,7 @@ fun DashboardScreen(
                 TextButton(
                     onClick = {
                         if (nameInput.isNotBlank()) {
-                            onUpdateIdentity(nameInput, mottoInput)
+                            onUpdateIdentity(nameInput, mottoInput, "", "", emptyList())
                             showIdentityEditor = false
                         }
                     }

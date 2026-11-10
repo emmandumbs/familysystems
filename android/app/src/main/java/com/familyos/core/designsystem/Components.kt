@@ -139,6 +139,72 @@ fun FamilyOSCard(
     }
 }
 
+enum class ButtonSize {
+    Small,
+    Medium,
+    Large
+}
+
+/**
+ * Flexible FamilyOS button supporting size parameter.
+ */
+@Composable
+fun FamilyOSButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    size: ButtonSize = ButtonSize.Medium,
+    enabled: Boolean = true
+) {
+    FamilyOSPrimaryButton(
+        text = text,
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled
+    )
+}
+
+/**
+ * FamilyOSCard overload with title, subtitle, and badge.
+ */
+@Composable
+fun FamilyOSCard(
+    title: String,
+    subtitle: String? = null,
+    badgeText: String? = null,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    backgroundColor: Color = FamilyOSColors.SurfaceCard,
+    content: (@Composable ColumnScope.() -> Unit)? = null
+) {
+    FamilyOSCard(
+        modifier = modifier,
+        onClick = onClick,
+        backgroundColor = backgroundColor
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                if (subtitle != null) {
+                    Spacer(modifier = Modifier.height(FamilyOSSpacing.xxs))
+                    Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = FamilyOSColors.TextSecondary)
+                }
+            }
+            if (badgeText != null) {
+                FamilyOSStatusBadge(text = badgeText, color = FamilyOSColors.SecondarySage)
+            }
+        }
+        if (content != null) {
+            Spacer(modifier = Modifier.height(FamilyOSSpacing.xs))
+            content()
+        }
+    }
+}
+
 /**
  * 5. FamilyOSSectionHeader
  * Editorial headline pairing with optional action.

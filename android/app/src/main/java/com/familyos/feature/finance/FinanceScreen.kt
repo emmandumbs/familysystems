@@ -62,7 +62,7 @@ fun FinanceScreen(
     modifier: Modifier = Modifier
 ) {
     // Role Security Check
-    if (currentRole == FamilyRole.CHILD || currentRole == FamilyRole.GUEST) {
+    if (currentRole == FamilyRole.GUEST) {
         RestrictedFinanceView(modifier = modifier)
         return
     }

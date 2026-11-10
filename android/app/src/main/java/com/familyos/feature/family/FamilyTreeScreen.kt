@@ -852,7 +852,7 @@ private fun InviteMemberModal(
                 )
                 Text("Proposed Role:", style = MaterialTheme.typography.labelMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf(FamilyRole.MEMBER, FamilyRole.CHILD, FamilyRole.GUEST).forEach { r ->
+                    listOf(FamilyRole.MEMBER, FamilyRole.GUEST).forEach { r ->
                         FilterChip(
                             selected = role == r,
                             onClick = { role = r },

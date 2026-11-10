@@ -11,7 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import com.familyos.core.designsystem.*
 import com.familyos.core.domain.Chore
 import com.familyos.core.domain.ChoreFrequency

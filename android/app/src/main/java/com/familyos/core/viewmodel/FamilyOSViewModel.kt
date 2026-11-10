@@ -42,6 +42,54 @@ class FamilyOSViewModel(application: Application) : AndroidViewModel(application
     private val _currentActorRole = MutableStateFlow(FamilyRole.OWNER)
     val currentActorRole: StateFlow<FamilyRole> = _currentActorRole.asStateFlow()
 
+    private val _currentActorMemberId = MutableStateFlow("mem-sarah")
+    val currentActorMemberId: StateFlow<String> = _currentActorMemberId.asStateFlow()
+
+    private val _milestones = MutableStateFlow<List<ProjectMilestone>>(
+        listOf(
+            ProjectMilestone(
+                id = "ms-1",
+                familyId = "fam-1",
+                projectId = "proj-1",
+                title = "Finalize monthly subscription budget envelope",
+                description = "Audit digital streaming & utility services",
+                dueDate = System.currentTimeMillis() + 604800000L,
+                status = "PENDING",
+                orderIndex = 1,
+                progressPercentage = 0
+            )
+        )
+    )
+    val milestones: StateFlow<List<ProjectMilestone>> = _milestones.asStateFlow()
+
+    private val _checklistTemplates = MutableStateFlow<List<ChecklistTemplate>>(
+        listOf(
+            ChecklistTemplate(
+                id = "tmpl-1",
+                familyId = "fam-1",
+                title = "Weekly Household Reset",
+                description = "Core weekend family chores and pantry check",
+                items = listOf("Pantry Inventory", "Deep Clean Kitchen", "Review Master Calendar")
+            )
+        )
+    )
+    val checklistTemplates: StateFlow<List<ChecklistTemplate>> = _checklistTemplates.asStateFlow()
+
+    private val _rewardConfig = MutableStateFlow(
+        FamilyRewardConfig(
+            familyId = "fam-1",
+            enabled = true,
+            currencyName = "Family Coins",
+            defaultTaskPoints = 15,
+            requiresApproval = true
+        )
+    )
+    val rewardConfig: StateFlow<FamilyRewardConfig> = _rewardConfig.asStateFlow()
+
+    val authSessions: StateFlow<List<AuthSessionEntity>> = _activeFamilyId
+        .flatMapLatest { familyId -> app.database.authSessionDao().observeSessionsForUser("usr-sarah-owner") }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
 
     private val _announcements = MutableStateFlow(
         listOf(
@@ -137,6 +185,8 @@ class FamilyOSViewModel(application: Application) : AndroidViewModel(application
     val members: StateFlow<List<FamilyMember>> = _activeFamilyId
         .flatMapLatest { familyId -> app.memberRepository.observeMembers(familyId) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val familyMembers: StateFlow<List<FamilyMember>> = members
 
     val relationships: StateFlow<List<FamilyRelationship>> = _activeFamilyId
         .flatMapLatest { familyId -> app.relationshipRepository.observeRelationships(familyId) }
@@ -1086,7 +1136,7 @@ class FamilyOSViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             if (!FamilySecurityPolicy.canManageFamilyMembers(_currentActorRole.value)) return@launch
             val existing = members.value.find { it.id == memberId } ?: return@launch
-            updateFamilyMemberProfile(existing.copy(role = newRole, isRestrictedProfile = (newRole == FamilyRole.CHILD || newRole == FamilyRole.GUEST)))
+            updateFamilyMemberProfile(existing.copy(role = newRole, isRestrictedProfile = (newRole == FamilyRole.GUEST)))
         }
     }
 
