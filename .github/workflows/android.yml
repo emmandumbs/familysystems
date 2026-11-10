@@ -16,32 +16,31 @@ jobs:
     steps:
       # 1. Checkout repository
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      # 2. Validate Gradle Wrapper integrity
+      # 2. Validate Gradle Wrapper integrity & Setup Gradle
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v3
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
       # 3. Set up JDK 17
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
 
-      # 4. Set up Android SDK & accept licenses
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.0
-
-      - name: Accept Android SDK Licenses
+      # 4. Accept Android SDK Licenses & Install Required Packages
+      - name: Accept Android SDK Licenses & Install Required Packages
         run: |
-          yes | sdkmanager --licenses || if [ $? -ne 141 ]; then exit $?; fi
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       # 5. Grant execute permissions to Gradle wrapper
       - name: Grant Execute Permission for Gradle Wrapper
@@ -74,7 +73,7 @@ jobs:
       # 10. Upload Unit Test Reports
       - name: Upload Unit Test Reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: unit-test-reports
           path: android/app/build/reports/tests/testDebugUnitTest/
@@ -83,7 +82,7 @@ jobs:
       # 11. Upload Lint Report
       - name: Upload Lint Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: android-lint-report
           path: android/app/build/reports/lint-results-debug.html
@@ -92,7 +91,7 @@ jobs:
       # 12. Upload Debug APK Artifact
       - name: Upload Debug APK
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: familyos-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
@@ -106,35 +105,31 @@ jobs:
     steps:
       # 1. Checkout repository
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      # 2. Validate Gradle Wrapper integrity
+      # 2. Validate Gradle Wrapper integrity & Setup Gradle
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v3
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
       # 3. Set up JDK 17
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
 
-      # 4. Set up Android SDK & accept licenses
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            platforms;android-34
-            build-tools;35.0.0
-            emulator
-            system-images;android-34;google_apis;x86_64
-
-      - name: Accept Android SDK Licenses
+      # 4. Accept Android SDK Licenses & Install Required Packages
+      - name: Accept Android SDK Licenses & Install Required Packages
         run: |
-          yes | sdkmanager --licenses || if [ $? -ne 141 ]; then exit $?; fi
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "platforms;android-34" "build-tools;35.0.0" "emulator" "system-images;android-34;google_apis;x86_64"
 
       # 5. Grant execute permissions to Gradle wrapper
       - name: Grant Execute Permission for Gradle Wrapper
@@ -173,7 +168,7 @@ jobs:
       # 9. Upload Instrumentation Test Reports
       - name: Upload Instrumentation Test Reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: instrumentation-test-reports
           path: android/app/build/reports/androidTests/connected/
