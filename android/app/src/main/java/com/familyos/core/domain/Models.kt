@@ -73,7 +73,9 @@ data class FamilyMember(
     val personalBioNotes: String? = null,
     val importantDates: List<String> = emptyList(),
     val photoUrl: String? = null
-)
+) {
+    val notes: String? get() = personalBioNotes
+}
 
 data class FamilyMembership(
     val id: String,

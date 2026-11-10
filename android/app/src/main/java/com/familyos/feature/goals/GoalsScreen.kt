@@ -503,12 +503,12 @@ fun GoalsScreen(
                                                 )
                                                 FamilyOSStatusBadge(
                                                     text = task.priority.name,
-                                                    color = if (isOverdue) FamilyOSColors.Danger else FamilyOSColors.SoftGold
+                                                    color = if (isOverdue) FamilyOSColors.SemanticAlert else FamilyOSColors.SoftGold
                                                 )
                                                 if (isOverdue) {
                                                     FamilyOSStatusBadge(
                                                         text = "OVERDUE",
-                                                        color = FamilyOSColors.Danger
+                                                        color = FamilyOSColors.SemanticAlert
                                                     )
                                                 }
                                             }

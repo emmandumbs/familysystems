@@ -401,7 +401,10 @@ data class CalendarEvent(
     val location: String? = null,
     val timezone: String = "America/Los_Angeles",
     val assignedMemberId: String? = null,
-    val isCompleted: Boolean = false
+    val isCompleted: Boolean = false,
+    val recurrenceRule: String? = null,
+    val recurrenceExceptions: List<String> = emptyList(),
+    val reminders: List<Int> = emptyList()
 )
 
 data class RoutineStep(
